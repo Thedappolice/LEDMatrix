@@ -7,6 +7,7 @@ LEDMatrix::LEDMatrix(int posPins[], int posPinSize, int negPins[], int negPinSiz
   Row = negPinSize;
   NumPins = Col + Row;
   Pins = new int[NumPins];
+  Matrixln = new int[Col];
 
   for (int i = 0; i < Col; i++)
   {
@@ -20,12 +21,6 @@ LEDMatrix::LEDMatrix(int posPins[], int posPinSize, int negPins[], int negPinSiz
   for (int i = 0; i < NumPins; i++)
   {
     pinMode(Pins[i], OUTPUT);
-  }
-
-  Matrix = new int *[Row];
-  for (int i = 0; i < Row; i++)
-  {
-    Matrix[i] = new int[Col];
   }
 }
 
@@ -103,17 +98,25 @@ void LEDMatrix::Test()
 
 void LEDMatrix::Symbol(int UserMatrix[][8])
 {
-  setupMatrix(UserMatrix);
-
-  for (int i = 0; i < Col; i++)
+  for (int i = 0; i < Col; i++) // repeating for each Column
   {
-    for (int j = 0; j < Row; j++)
+    for (int n = 0; n < Col; n++) // repeating for each entity of array
     {
-      if (Matrix[j][i] == 1)
+      Matrixln[n] = UserMatrix[i][n]; // ispecting each entity of array
+    }
+    digitalWrite(Pins[i], HIGH);  // pulling the i-th Column Pin HIGH
+    for (int j = 0; j < Row; j++) // repeating for each Row
+    {
+      if (Matrixln[j] == 1)
       {
-        turnOn(i, j);
+        digitalWrite(Pins[Col + j], LOW); // pulling pin LOW to light LED
+      }
+      else
+      {
+        digitalWrite(Pins[Col + j], HIGH); // pulling pin HIGH to dim LED
       }
     }
+    Clear(); // Clearing up
   }
 }
 
@@ -157,20 +160,9 @@ int LEDMatrix::limitingRows(int yRow)
 
 void LEDMatrix::Clear()
 {
-  delayMicroseconds(700);
+  delay(2);
   for (int i = 0; i < NumPins; i++)
   {
     digitalWrite(Pins[i], LOW);
-  }
-}
-
-void LEDMatrix::setupMatrix(int UserMatrix[][8])
-{
-  for (int i = 0; i < Col; i++)
-  {
-    for (int j = 0; j < Row; j++)
-    {
-      Matrix[j][i] = UserMatrix[i][j];
-    }
   }
 }

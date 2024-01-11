@@ -29,9 +29,7 @@ private:
     int limitingCols(int xCol);
     int limitingRows(int yRow);
 
-    int **Matrix;
-
-    void setupMatrix(int UserMatrix[][8]);
+    int *Matrixln;
 
 };
 
