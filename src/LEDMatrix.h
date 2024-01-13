@@ -10,6 +10,9 @@ public:
 
     void turnOn(int xCol, int yRow);
 
+    void customCol(int array[8],int xCol, int shift = 0);
+    void customRow(int array[8],int yRow,  int shift = 0);
+
     void OnRow(int yRow);
     void OnCol(int xCol);
 
@@ -29,8 +32,8 @@ private:
     int limitingCols(int xCol);
     int limitingRows(int yRow);
 
-    int *Matrixln;
-
+    int *OutputCol;
+    int *OutputRow;
 };
 
 #endif
