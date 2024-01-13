@@ -91,7 +91,7 @@ void LEDMatrix::customCol(int array[8], int xCol, int shift)
     }
   }
 
-Clear();
+Clear(10);
 }
 
 void LEDMatrix::customRow(int array[8], int yRow, int shift)
@@ -140,15 +140,15 @@ void LEDMatrix::customRow(int array[8], int yRow, int shift)
       digitalWrite(Pins[Col + i], HIGH);
     }
   }
-  for (int i = 0; i < Row; i++)
+  for (int i = 0; i < Col; i++)
   {
     if (OutputRow[i] == 1)
     {
-      digitalWrite(Pins[Col + i], HIGH);
+      digitalWrite(Pins[i], HIGH);
     }
     else
     {
-      digitalWrite(Pins[Col + i], LOW);
+      digitalWrite(Pins[i], LOW);
     }
   }
   Clear();
@@ -271,11 +271,15 @@ int LEDMatrix::limitingRows(int yRow)
   return limitedy;
 }
 
-void LEDMatrix::Clear()
+void LEDMatrix::Clear(int time)
 {
   delay(2);
   for (int i = 0; i < NumPins; i++)
   {
     digitalWrite(Pins[i], LOW);
+  }
+  if(time !=0)
+  {
+    delay(time);
   }
 }
