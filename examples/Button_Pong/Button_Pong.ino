@@ -1,11 +1,13 @@
 #include <LEDMatrix.h>
 
-int posPin[] = { 6, 7, 8, 9, 10, 11, 12, 13 };
-int negPin[] = { A0, A1, A2, A3, A4, A5, A6, A7 };
+int posPin[] = {6, 7, 8, 9, 10, 11, 12, 13};
+int negPin[] = {A0, A1, A2, A3, A4, A5, A6, A7};
 
-int wall[] = { 0, 0, 0, 1, 1, 1, 0, 0 };
+int wall[] = {0, 0, 1, 1, 1, 0, 0, 0};
 
 LEDMatrix LM(posPin, 8, negPin, 8);
+
+#define buzzer 1
 
 #define P1left 4
 #define P1right 5
@@ -14,10 +16,10 @@ LEDMatrix LM(posPin, 8, negPin, 8);
 
 int timeupdate;
 
-int ballX;
-int ballY;
-int Xdirection = random(2);
-int Ydirection = random(2);
+int ballX = 3;
+int ballY = 3;
+int Xdirection = 1;
+int Ydirection = 1;
 
 int P1leftstat;
 int P1rightstat;
@@ -27,99 +29,111 @@ int P2rightstat;
 int P1shift = 0;
 int P2shift = 0;
 
-int memory[8][8] = {
-  { 0, 0, 0, 0, 0, 0, 0, 0 },
-  { 0, 0, 0, 0, 0, 0, 0, 0 },
-  { 1, 0, 0, 0, 0, 0, 0, 1 },
-  { 1, 0, 0, 0, 0, 0, 0, 1 },
-  { 1, 0, 0, 0, 0, 0, 0, 1 },
-  { 0, 0, 0, 0, 0, 0, 0, 0 },
-  { 0, 0, 0, 0, 0, 0, 0, 0 },
-  { 0, 0, 0, 0, 0, 0, 0, 0 }
-};
+int memory[8][8];
 
 int W[8][8] = {
-  { 1, 0, 0, 0, 0, 0, 0, 1 },
-  { 1, 0, 0, 0, 0, 0, 0, 1 },
-  { 1, 0, 0, 1, 1, 0, 0, 1 },
-  { 1, 1, 0, 1, 1, 0, 1, 1 },
-  { 1, 1, 0, 1, 1, 0, 1, 1 },
-  { 1, 1, 1, 0, 0, 1, 1, 1 },
-  { 0, 1, 1, 0, 0, 1, 1, 0 },
-  { 0, 1, 0, 0, 0, 0, 1, 0 }
-};
+    {1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 1, 1, 0, 0, 1},
+    {1, 1, 0, 1, 1, 0, 1, 1},
+    {1, 1, 0, 1, 1, 0, 1, 1},
+    {1, 1, 1, 0, 0, 1, 1, 1},
+    {0, 1, 1, 0, 0, 1, 1, 0},
+    {0, 1, 0, 0, 0, 0, 1, 0}};
 
 int I[8][8] = {
-  { 0, 1, 1, 1, 1, 1, 1, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 },
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 }
-};
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0}};
 
 int N[8][8] = {
-  { 1, 1, 0, 0, 0, 0, 1, 1 },
-  { 1, 1, 1, 0, 0, 0, 1, 1 },
-  { 1, 1, 1, 1, 0, 0, 1, 1 },
-  { 1, 1, 1, 1, 1, 0, 1, 1 },
-  { 1, 1, 0, 1, 1, 1, 1, 1 },
-  { 1, 1, 0, 0, 1, 1, 1, 1 },
-  { 1, 1, 0, 0, 0, 1, 1, 1 },
-  { 1, 1, 0, 0, 0, 0, 1, 1 }
-};
+    {1, 1, 0, 0, 0, 0, 1, 1},
+    {1, 1, 1, 0, 0, 0, 1, 1},
+    {1, 1, 1, 1, 0, 0, 1, 1},
+    {1, 1, 1, 1, 1, 0, 1, 1},
+    {1, 1, 0, 1, 1, 1, 1, 1},
+    {1, 1, 0, 0, 1, 1, 1, 1},
+    {1, 1, 0, 0, 0, 1, 1, 1},
+    {1, 1, 0, 0, 0, 0, 1, 1}};
 
 int P[8][8] = {
-  { 0, 1, 1, 1, 1, 1, 0, 0 },
-  { 0, 1, 1, 0, 0, 0, 1, 0 },
-  { 0, 1, 1, 0, 0, 0, 1, 0 },
-  { 0, 1, 1, 1, 1, 1, 0, 0 },
-  { 0, 1, 1, 0, 0, 0, 0, 0 },
-  { 0, 1, 1, 0, 0, 0, 0, 0 },
-  { 0, 1, 1, 0, 0, 0, 0, 0 },
-  { 0, 1, 1, 0, 0, 0, 0, 0 }
-};
+    {0, 1, 1, 1, 1, 1, 0, 0},
+    {0, 1, 1, 0, 0, 0, 1, 0},
+    {0, 1, 1, 0, 0, 0, 1, 0},
+    {0, 1, 1, 1, 1, 1, 0, 0},
+    {0, 1, 1, 0, 0, 0, 0, 0},
+    {0, 1, 1, 0, 0, 0, 0, 0},
+    {0, 1, 1, 0, 0, 0, 0, 0},
+    {0, 1, 1, 0, 0, 0, 0, 0}};
 
 int P1[8][8] = {
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 0, 1, 1, 1, 0, 0, 0 },
-  { 0, 1, 1, 1, 1, 0, 0, 0 },
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 0, 0, 1, 1, 0, 0, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 }
-};
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 0, 1, 1, 1, 0, 0, 0},
+    {0, 1, 1, 1, 1, 0, 0, 0},
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 0, 0, 1, 1, 0, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0}};
 
 int P2[8][8] = {
-  { 0, 0, 1, 1, 1, 1, 0, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 },
-  { 0, 1, 1, 0, 0, 1, 1, 0 },
-  { 0, 0, 0, 0, 1, 1, 1, 0 },
-  { 0, 0, 0, 1, 1, 1, 0, 0 },
-  { 0, 0, 1, 1, 1, 0, 0, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 },
-  { 0, 1, 1, 1, 1, 1, 1, 0 }
-};
+    {0, 0, 1, 1, 1, 1, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 1, 1, 0, 0, 1, 1, 0},
+    {0, 0, 0, 0, 1, 1, 1, 0},
+    {0, 0, 0, 1, 1, 1, 0, 0},
+    {0, 0, 1, 1, 1, 0, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0}};
 
-void displaywithtime(int Matrix[][8], int time = 1000) {
+void displaywithtime(int Matrix[][8], int time = 1000)
+{
   timeupdate = millis();
-  while (millis() - timeupdate < time) {
+  while (millis() - timeupdate < time)
+  {
     LM.Symbol(Matrix);
   }
 };
 
-void checkbutton() {
+void checkbutton()
+{
   P1leftstat = digitalRead(P1left);
   P1rightstat = digitalRead(P1right);
   P2leftstat = digitalRead(P2left);
   P2rightstat = digitalRead(P2right);
+  if (P1leftstat == 1 || P1rightstat == 1)
+  {
+    if (P1leftstat == 1)
+    {
+      P1shift= limitingshift(P1shift, true);
+    }
+    if (P1rightstat == 1)
+    {
+      P1shift = limitingshift(P1shift, false);
+    }
+  }
+  if (P2leftstat == 1 || P2rightstat == 1)
+  {
+    if (P2leftstat == 1)
+    {
+      P2shift= limitingshift(P2shift, false);
+    }
+    if (P2rightstat == 1)
+    {
+      P2shift= limitingshift(P2shift, true);
+    }
+  }
 };
 
-void display() {
-  LM.Symbol(memory);
+void display()
+{
+  LM.customRow(wall, 0, P1shift);
+  LM.customRow(wall, 7, P2shift);
   LM.turnOn(ballX, ballY);
 };
 
@@ -127,48 +141,82 @@ void checklogic(int memory[][8]){
 
 };
 
-int limitingshift(int value, bool change) {
+int limitingshift(int value, bool change)
+{
   int mem;
-  if (value < 3 || change == true) {
+  if (value < 3 || change == true)
+  {
     mem = value++;
-  } else if (value > -4 || change == false) {
+  }
+  else if (value > -4 || change == false)
+  {
     mem = value--;
   }
   return mem;
 };
 
-int updateMem(int Matrix[][8])
+void updateMem()
 {
-  int newMatrix[8][8];
- for(int i = 0; i<8; i++)
- {
-  for(int j = 0; j<8;j++)
+  for (int i = 0; i < 8; i++)
   {
-    newMatrix[j][i] = ;
+    for (int j = 0; j < 8; j++)
+    {
+      memory[j][i] = 0;
+    }
   }
- }
- return newMatrix;
+  for (int i = 0; i < 8; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      if (2+ P1shift== j ||3 + P1shift== j||4+ P1shift== j)
+      {
+        memory[i][0] = 1;
+      }
+    }
+  }
+  for (int i = 0; i < 8; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      if (2+ P2shift== j ||3 + P2shift== j||4+ P2shift== j)
+      {
+        memory[i][7] = 1;
+      }
+    }
+  }
+  memory[ballY][ballX] = 1;
 };
 
-void End(int result, bool simple = false) {
-  if (!simple) {
-    for (int i = 0; i < 3; i++) {
+void End(int result, bool simple = false)
+{
+  if (!simple)
+  {
+    for (int i = 0; i < 3; i++)
+    {
       displaywithtime(P);
-      if (result == 1) {
+      if (result == 1)
+      {
         displaywithtime(P1);
-      } else if (result == 2) {
+      }
+      else if (result == 2)
+      {
         displaywithtime(P2);
       }
       displaywithtime(W);
       displaywithtime(I);
       displaywithtime(N);
     }
-
-  } else {
-    for (int i = 0; i < 30; i++) {
-      if (result == 1) {
+  }
+  else
+  {
+    for (int i = 0; i < 30; i++)
+    {
+      if (result == 1)
+      {
         displaywithtime(P1, 300);
-      } else if (result == 2) {
+      }
+      else if (result == 2)
+      {
         displaywithtime(P2, 300);
       }
       delay(300);
@@ -177,16 +225,16 @@ void End(int result, bool simple = false) {
   exit(1);
 };
 
-void setup() {
-  for (int i = 2; i < 6; i++) {
+void setup() 
+{
+  for (int i = 2; i < 6; i++)
+  {
     pinMode(i, INPUT);
   }
+  pinMode(1, OUTPUT);
 };
 
-void loop() {
-  displaywithtime(memory);
-  // memory = updateMem(memory);
-  // display();
-  // checkbutton();
-  // checklogic();
+void loop()
+{
+  
 };
