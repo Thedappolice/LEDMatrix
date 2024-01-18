@@ -26,6 +26,9 @@ int P1rightstat;
 int P2leftstat;
 int P2rightstat;
 
+int P1change = 0;
+int P2change = 0;
+
 int P1shift = 0;
 int P2shift = 0;
 
@@ -106,34 +109,58 @@ void checkbutton()
   P1rightstat = digitalRead(P1right);
   P2leftstat = digitalRead(P2left);
   P2rightstat = digitalRead(P2right);
-  if (P1leftstat == 1 || P1rightstat == 1)
+  if (P1change == 0)
   {
-    if (P1leftstat == 1)
+    if (P1leftstat == 1 || P1rightstat == 1)
     {
-      P1shift = limitingshift(P1shift, true);
-    }
-    if (P1rightstat == 1)
-    {
-      P1shift = limitingshift(P1shift, false);
+      if (P1leftstat == 1)
+      {
+        P1shift = limitingshift(P1shift, true);
+      }
+      else if (P1rightstat == 1)
+      {
+        P1shift = limitingshift(P1shift, false);
+      }
+      P1change = 1;
+      Serial.println(P1shift);
     }
   }
-  if (P2leftstat == 1 || P2rightstat == 1)
+  else
   {
-    if (P2leftstat == 1)
+    if (P1leftstat == 0 && P1rightstat == 0)
     {
-      P2shift = limitingshift(P2shift, false);
+      P1change = 0;
     }
-    if (P2rightstat == 1)
+  }
+  if (P2change == 0)
+  {
+    if (P2leftstat == 1 || P2rightstat == 1)
     {
-      P2shift = limitingshift(P2shift, true);
+      if (P2leftstat == 1)
+      {
+        P2shift = limitingshift(P2shift, false);
+      }
+      else if (P2rightstat == 1)
+      {
+        P2shift = limitingshift(P2shift, true);
+      }
+      P2change = 1;
+      Serial.println(P2shift);
+    }
+  }
+  else
+  {
+    if (P2leftstat == 0 && P2rightstat == 0)
+    {
+      P2change = 0;
     }
   }
 };
 
 void display()
 {
-  LM.customRow(wall, 0, P1shift);
-  LM.customRow(wall, 7, P2shift);
+  LM.customRow(wall, 7, P1shift);
+  LM.customRow(wall, 0, P2shift);
   LM.turnOn(ballX, ballY);
 };
 
@@ -146,11 +173,11 @@ int limitingshift(int value, bool change)
   int mem;
   if (value < 3 && change == true)
   {
-    mem = value+ 1;
+    mem = value + 1;
   }
   else if (value > -2 && change == false)
   {
-    mem = value-1;
+    mem = value - 1;
   }
   return mem;
 };
@@ -227,6 +254,7 @@ void End(int result, bool simple = false)
 
 void setup()
 {
+  Serial.begin(9600);
   for (int i = 2; i < 6; i++)
   {
     pinMode(i, INPUT);
