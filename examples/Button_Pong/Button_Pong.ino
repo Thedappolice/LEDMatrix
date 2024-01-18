@@ -110,7 +110,7 @@ void checkbutton()
   {
     if (P1leftstat == 1)
     {
-      P1shift= limitingshift(P1shift, true);
+      P1shift = limitingshift(P1shift, true);
     }
     if (P1rightstat == 1)
     {
@@ -121,11 +121,11 @@ void checkbutton()
   {
     if (P2leftstat == 1)
     {
-      P2shift= limitingshift(P2shift, false);
+      P2shift = limitingshift(P2shift, false);
     }
     if (P2rightstat == 1)
     {
-      P2shift= limitingshift(P2shift, true);
+      P2shift = limitingshift(P2shift, true);
     }
   }
 };
@@ -144,13 +144,13 @@ void checklogic(int memory[][8]){
 int limitingshift(int value, bool change)
 {
   int mem;
-  if (value < 3 || change == true)
+  if (value < 3 && change == true)
   {
-    mem = value++;
+    mem = value+ 1;
   }
-  else if (value > -4 || change == false)
+  else if (value > -2 && change == false)
   {
-    mem = value--;
+    mem = value-1;
   }
   return mem;
 };
@@ -168,7 +168,7 @@ void updateMem()
   {
     for (int j = 0; j < 8; j++)
     {
-      if (2+ P1shift== j ||3 + P1shift== j||4+ P1shift== j)
+      if (2 + P1shift == j || 3 + P1shift == j || 4 + P1shift == j)
       {
         memory[i][0] = 1;
       }
@@ -178,7 +178,7 @@ void updateMem()
   {
     for (int j = 0; j < 8; j++)
     {
-      if (2+ P2shift== j ||3 + P2shift== j||4+ P2shift== j)
+      if (2 + P2shift == j || 3 + P2shift == j || 4 + P2shift == j)
       {
         memory[i][7] = 1;
       }
@@ -225,7 +225,7 @@ void End(int result, bool simple = false)
   exit(1);
 };
 
-void setup() 
+void setup()
 {
   for (int i = 2; i < 6; i++)
   {
@@ -236,5 +236,7 @@ void setup()
 
 void loop()
 {
-  
+  updateMem();
+  display();
+  checkbutton();
 };
