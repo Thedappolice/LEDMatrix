@@ -88,7 +88,7 @@ int P[8][8] = {
     {0, 1, 1, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0}};
-int P1[8][8] = {
+int N1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 0, 1, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 0, 0, 0},
@@ -97,7 +97,7 @@ int P1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
-int P2[8][8] = {
+int N2[8][8] = {
     {0, 0, 1, 1, 1, 1, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 0, 0, 1, 1, 0},
@@ -106,6 +106,15 @@ int P2[8][8] = {
     {0, 0, 1, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
+int N3[8][8] = {
+    {0, 0, 1, 1, 1, 1, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 0, 0, 0, 0, 1, 1, 0},
+    {0, 0, 1, 1, 1, 1, 0, 0},
+    {0, 0, 1, 1, 1, 1, 0, 0},
+    {0, 0, 0, 0, 0, 1, 1, 0},
+    {0, 1, 1, 1, 1, 1, 1, 0},
+    {0, 0, 1, 1, 1, 1, 0, 0}};
 
 // function to display given symbol for set time
 void displaywithtime(int Matrix[][8], int time = 1000)
@@ -129,6 +138,11 @@ int limitingshift(int value, bool change) // limiting the input of players
   }
   return mem;
 };
+
+void fasterball()//increase ball speed
+{
+balldelaytime = ceil(1000 - millis() / 90);
+}
 
 void checkbutton() // checking for button inputs
 {
@@ -260,11 +274,11 @@ void End(int result, bool simple = false) // ending the game.
       displaywithtime(P);
       if (result == 1)
       {
-        displaywithtime(P1);
+        displaywithtime(N1);
       }
       else if (result == 2)
       {
-        displaywithtime(P2);
+        displaywithtime(N2);
       }
       displaywithtime(W);
       displaywithtime(I);
@@ -277,11 +291,11 @@ void End(int result, bool simple = false) // ending the game.
     {
       if (result == 1)
       {
-        displaywithtime(P1, 300);
+        displaywithtime(N1, 300);
       }
       else if (result == 2)
       {
-        displaywithtime(P2, 300);
+        displaywithtime(N2, 300);
       }
       delay(300);
     }
@@ -309,11 +323,11 @@ void ballchange() // ball changes
         {
           if (check == -1)
           {
-            End(2, true); // calls End()
+            End(2, false); // calls End()
           }
           else if (check == 1)
           {
-            End(1, true); // calls End()
+            End(1, false); // calls End()
           }
         }
         else // switch direction on edge
@@ -373,6 +387,14 @@ void setup()
   {
     pinMode(i, INPUT);
   }
+  displaywithtime(N3); // countdown
+  displaywithtime(N2);
+  displaywithtime(N1);
+  for (int i = 0; i < 20; i++) // blink the ball position, showing the starting position
+  {
+    LM.turnOn(ballY, ballX);
+    delay(100);
+  }
 };
 
 void loop() // calling functions in sequence
@@ -381,4 +403,5 @@ void loop() // calling functions in sequence
   display();
   checkbutton();
   ballchange();
+  fasterball();
 };
