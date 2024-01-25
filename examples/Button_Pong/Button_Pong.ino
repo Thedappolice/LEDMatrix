@@ -14,12 +14,15 @@ LEDMatrix LM(posPin, 8, negPin, 8);
 #define P2left 2
 #define P2right 3
 
-int timeupdate;
+bool balldelay = false;
+unsigned long timeupdate;
+int balldelaytime = 500;
 
-int ballX = 3;
-int ballY = 3;
-int Xdirection = 1;
-int Ydirection = 1;
+int ballX = random(3, 5);
+int ballY = random(3, 5);
+int ballXdirection = 1;
+int ballYdirection = 1;
+int check;
 
 int P1leftstat;
 int P1rightstat;
@@ -43,7 +46,6 @@ int W[8][8] = {
     {1, 1, 1, 0, 0, 1, 1, 1},
     {0, 1, 1, 0, 0, 1, 1, 0},
     {0, 1, 0, 0, 0, 0, 1, 0}};
-
 int I[8][8] = {
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
@@ -53,7 +55,6 @@ int I[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
-
 int N[8][8] = {
     {1, 1, 0, 0, 0, 0, 1, 1},
     {1, 1, 1, 0, 0, 0, 1, 1},
@@ -63,7 +64,6 @@ int N[8][8] = {
     {1, 1, 0, 0, 1, 1, 1, 1},
     {1, 1, 0, 0, 0, 1, 1, 1},
     {1, 1, 0, 0, 0, 0, 1, 1}};
-
 int P[8][8] = {
     {0, 1, 1, 1, 1, 1, 0, 0},
     {0, 1, 1, 0, 0, 0, 1, 0},
@@ -73,7 +73,6 @@ int P[8][8] = {
     {0, 1, 1, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0}};
-
 int P1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 0, 1, 1, 1, 0, 0, 0},
@@ -83,7 +82,6 @@ int P1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
-
 int P2[8][8] = {
     {0, 0, 1, 1, 1, 1, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
@@ -161,28 +159,10 @@ void display()
 {
   LM.customRow(wall, 7, P1shift);
   LM.customRow(wall, 0, P2shift);
-  LM.turnOn(ballX, ballY);
+  LM.turnOn(ballY, ballX);
 };
 
-void checklogic(int memory[][8]){
-
-};
-
-int limitingshift(int value, bool change)
-{
-  int mem;
-  if (value < 3 && change == true)
-  {
-    mem = value + 1;
-  }
-  else if (value > -2 && change == false)
-  {
-    mem = value - 1;
-  }
-  return mem;
-};
-
-void updateMem()
+void updateMem(bool normal = true)
 {
   for (int i = 0; i < 8; i++)
   {
@@ -191,23 +171,26 @@ void updateMem()
       memory[j][i] = 0;
     }
   }
-  for (int i = 0; i < 8; i++)
+  if (normal)
   {
-    for (int j = 0; j < 8; j++)
+    for (int i = 0; i < 8; i++)
     {
-      if (2 + P1shift == j || 3 + P1shift == j || 4 + P1shift == j)
+      for (int j = 0; j < 8; j++)
       {
-        memory[i][0] = 1;
+        if (2 + P1shift == j || 3 + P1shift == j || 4 + P1shift == j)
+        {
+          memory[i][0] = 1;
+        }
       }
     }
-  }
-  for (int i = 0; i < 8; i++)
-  {
-    for (int j = 0; j < 8; j++)
+    for (int i = 0; i < 8; i++)
     {
-      if (2 + P2shift == j || 3 + P2shift == j || 4 + P2shift == j)
+      for (int j = 0; j < 8; j++)
       {
-        memory[i][7] = 1;
+        if (2 + P2shift == j || 3 + P2shift == j || 4 + P2shift == j)
+        {
+          memory[i][7] = 1;
+        }
       }
     }
   }
@@ -216,6 +199,19 @@ void updateMem()
 
 void End(int result, bool simple = false)
 {
+  if (ballXdirection == 1)
+  {
+    ballX++;
+  }
+  else
+  {
+    ballX--;
+  }
+  updateMem(false);
+  for (int i = 0; i < 6; i++)
+  {
+    displaywithtime(memory, 500);
+  }
   if (!simple)
   {
     for (int i = 0; i < 3; i++)
@@ -252,6 +248,94 @@ void End(int result, bool simple = false)
   exit(1);
 };
 
+void ballchange()
+{
+  if (balldelay)
+  {
+    if (millis() - timeupdate > balldelaytime)
+    {
+      if (ballX == 1 || ballX == 6)
+      {
+        if (ballX == 1)
+        {
+          check = -1;
+        }
+        if (memory[ballY][ballX + check] != 1)
+        {
+          if (check == -1)
+          {
+            End(1, true);
+          }
+          else if (check == 1)
+          {
+            End(2, true);
+          }
+        }
+        else
+        {
+          if (ballXdirection == 1)
+          {
+            ballXdirection = -1;
+          }
+          else if (ballXdirection == -1)
+          {
+            ballXdirection = 1;
+          }
+        }
+      }
+      if (ballXdirection == 1)
+      {
+        ballX++;
+      }
+      else
+      {
+        ballX--;
+      }
+
+      if (ballY == 0 || ballY == 7)
+      {
+        if (ballYdirection == 1)
+        {
+          ballYdirection = -1;
+        }
+        else if (ballYdirection == -1)
+        {
+          ballYdirection = 1;
+        }
+      }
+      if (ballYdirection == 1)
+      {
+        ballY++;
+      }
+      else
+      {
+        ballY--;
+      }
+
+      balldelay = false;
+    }
+  }
+  else
+  {
+    timeupdate = millis();
+    balldelay = true;
+  }
+};
+
+int limitingshift(int value, bool change)
+{
+  int mem;
+  if (value < 3 && change == true)
+  {
+    mem = value + 1;
+  }
+  else if (value > -2 && change == false)
+  {
+    mem = value - 1;
+  }
+  return mem;
+};
+
 void setup()
 {
   Serial.begin(9600);
@@ -259,7 +343,7 @@ void setup()
   {
     pinMode(i, INPUT);
   }
-  pinMode(1, OUTPUT);
+  Serial.begin(9600);
 };
 
 void loop()
@@ -267,4 +351,11 @@ void loop()
   updateMem();
   display();
   checkbutton();
+  ballchange();
+  // Serial.print(millis());
+  // Serial.print(" - ");
+  // Serial.print(timeupdate);
+  // Serial.print(" = ");
+  // Serial.println(millis() - timeupdate);
+  // delay(1000);
 };
