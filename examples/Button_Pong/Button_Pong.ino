@@ -46,7 +46,7 @@ int P2change = 0;
 
 // variables to alter array position, refer example 'display_basics.ino'
 int P1shift = 0;
-int P2shift = 3;
+int P2shift = 0;
 
 // allocate space for game memory
 int memory[8][8];
