@@ -117,8 +117,7 @@ void displaywithtime(int Matrix[][8], int time = 1000)
   }
 };
 
-// limiting the input of players
-int limitingshift(int value, bool change)
+int limitingshift(int value, bool change) // limiting the input of players
 {
   if (value < 3 && change == true)
   {
@@ -131,8 +130,7 @@ int limitingshift(int value, bool change)
   return mem;
 };
 
-// checking for button inputs
-void checkbutton()
+void checkbutton() // checking for button inputs
 {
   P1leftstat = digitalRead(P1left); // reads
   P1rightstat = digitalRead(P1right);
