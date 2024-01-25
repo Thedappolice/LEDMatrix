@@ -250,7 +250,7 @@ void End(int result, bool simple = false) // ending the game.
   updateMem(false);            // clear memory
   for (int i = 0; i < 20; i++) // blink the ball position, showing the losing side
   {
-    LM.turnOn(ballX, ballY);
+    LM.turnOn(ballY, ballX);
     delay(100);
   }
   if (!simple) // displays symbol ending
