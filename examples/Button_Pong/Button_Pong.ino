@@ -1,42 +1,57 @@
 #include <LEDMatrix.h>
 
+// (Row/Column) pins must be put in ascending order, follow your datasheet.
 int posPin[] = {6, 7, 8, 9, 10, 11, 12, 13};
 int negPin[] = {A0, A1, A2, A3, A4, A5, A6, A7};
 
+// array to show specific pattern called "wall"
 int wall[] = {0, 0, 1, 1, 1, 0, 0, 0};
 
-LEDMatrix LM(posPin, 8, negPin, 8);
+LEDMatrix LM(posPin, 8, negPin, 8); // Initialization
+/*
+  Class name, Object_name(
+  positive_pin_array[],
+  size of positive_pin_array[],
+  negative_pin_array[],
+  size of positive_pin_array[]
+  )
+*/
 
-#define buzzer 1
-
+// defining terms resembling pins to increase readability
 #define P1left 4
 #define P1right 5
 #define P2left 2
 #define P2right 3
 
+// variables for time control
 bool balldelay = false;
 unsigned long timeupdate;
-int balldelaytime = 500;
+int balldelaytime = 1000;
 
+// varibales for ball control
 int ballX = random(3, 5);
 int ballY = random(3, 5);
 int ballXdirection = 1;
 int ballYdirection = 1;
 int check;
+int mem;
 
+// variables for input detection
 int P1leftstat;
 int P1rightstat;
 int P2leftstat;
 int P2rightstat;
-
 int P1change = 0;
 int P2change = 0;
 
+// variables to alter array position, refer example 'display_basics.ino'
 int P1shift = 0;
-int P2shift = 0;
+int P2shift = 3;
 
+// allocate space for game memory
 int memory[8][8];
 
+// fixed symbols for display purposes
 int W[8][8] = {
     {1, 0, 0, 0, 0, 0, 0, 1},
     {1, 0, 0, 0, 0, 0, 0, 1},
@@ -92,6 +107,7 @@ int P2[8][8] = {
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
 
+// function to display given symbol for set time
 void displaywithtime(int Matrix[][8], int time = 1000)
 {
   timeupdate = millis();
@@ -101,49 +117,62 @@ void displaywithtime(int Matrix[][8], int time = 1000)
   }
 };
 
+// limiting the input of players
+int limitingshift(int value, bool change)
+{
+  if (value < 3 && change == true)
+  {
+    mem = value + 1;
+  }
+  else if (value > -2 && change == false)
+  {
+    mem = value - 1;
+  }
+  return mem;
+};
+
+// checking for button inputs
 void checkbutton()
 {
-  P1leftstat = digitalRead(P1left);
+  P1leftstat = digitalRead(P1left); // reads
   P1rightstat = digitalRead(P1right);
   P2leftstat = digitalRead(P2left);
   P2rightstat = digitalRead(P2right);
-  if (P1change == 0)
+  if (P1change == 0) // only change if the user has let go of the button
   {
     if (P1leftstat == 1 || P1rightstat == 1)
     {
       if (P1leftstat == 1)
       {
-        P1shift = limitingshift(P1shift, true);
+        P1shift = limitingshift(P1shift, false);
       }
       else if (P1rightstat == 1)
       {
-        P1shift = limitingshift(P1shift, false);
+        P1shift = limitingshift(P1shift, true);
       }
       P1change = 1;
-      Serial.println(P1shift);
     }
   }
   else
   {
-    if (P1leftstat == 0 && P1rightstat == 0)
+    if (P1leftstat == 0 && P1rightstat == 0) // when let go, renable the input
     {
       P1change = 0;
     }
   }
-  if (P2change == 0)
+  if (P2change == 0) // same as P1
   {
     if (P2leftstat == 1 || P2rightstat == 1)
     {
       if (P2leftstat == 1)
       {
-        P2shift = limitingshift(P2shift, false);
+        P2shift = limitingshift(P2shift, true);
       }
       else if (P2rightstat == 1)
       {
-        P2shift = limitingshift(P2shift, true);
+        P2shift = limitingshift(P2shift, false);
       }
       P2change = 1;
-      Serial.println(P2shift);
     }
   }
   else
@@ -155,51 +184,45 @@ void checkbutton()
   }
 };
 
-void display()
+void display() // displaying on the matrix
 {
-  LM.customRow(wall, 7, P1shift);
-  LM.customRow(wall, 0, P2shift);
+  LM.customRow(wall, 0, P1shift);
+  LM.customRow(wall, 7, P2shift);
   LM.turnOn(ballY, ballX);
 };
 
-void updateMem(bool normal = true)
+void updateMem(bool normal = true) // updating the game memory
 {
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 8; i++) // clear the momory
   {
     for (int j = 0; j < 8; j++)
     {
       memory[j][i] = 0;
     }
   }
-  if (normal)
+  if (normal) // update the memory if needed
   {
-    for (int i = 0; i < 8; i++)
+    for (int j = 0; j < 8; j++)
     {
-      for (int j = 0; j < 8; j++)
+      if (2 + P1shift == j || 3 + P1shift == j || 4 + P1shift == j)
       {
-        if (2 + P1shift == j || 3 + P1shift == j || 4 + P1shift == j)
-        {
-          memory[i][0] = 1;
-        }
+        memory[j][0] = 1;
       }
     }
-    for (int i = 0; i < 8; i++)
+    for (int j = 0; j < 8; j++)
     {
-      for (int j = 0; j < 8; j++)
+      if (2 + P2shift == j || 3 + P2shift == j || 4 + P2shift == j)
       {
-        if (2 + P2shift == j || 3 + P2shift == j || 4 + P2shift == j)
-        {
-          memory[i][7] = 1;
-        }
+        memory[j][7] = 1;
       }
     }
-  }
-  memory[ballY][ballX] = 1;
+    memory[ballY][ballX] = 1;
+  } // eitherwise just leave it blank to save space
 };
 
-void End(int result, bool simple = false)
+void End(int result, bool simple = false) // ending the game.
 {
-  if (ballXdirection == 1)
+  if (ballXdirection == 1) // final changes
   {
     ballX++;
   }
@@ -207,12 +230,32 @@ void End(int result, bool simple = false)
   {
     ballX--;
   }
-  updateMem(false);
-  for (int i = 0; i < 6; i++)
+  if (ballY == 0 || ballY == 7)
   {
-    displaywithtime(memory, 500);
+    if (ballYdirection == 1)
+    {
+      ballYdirection = -1;
+    }
+    else if (ballYdirection == -1)
+    {
+      ballYdirection = 1;
+    }
   }
-  if (!simple)
+  if (ballYdirection == 1)
+  {
+    ballY++;
+  }
+  else
+  {
+    ballY--;
+  }
+  updateMem(false);            // clear memory
+  for (int i = 0; i < 20; i++) // blink the ball position, showing the losing side
+  {
+    LM.turnOn(ballX, ballY);
+    delay(100);
+  }
+  if (!simple) // displays symbol ending
   {
     for (int i = 0; i < 3; i++)
     {
@@ -230,7 +273,7 @@ void End(int result, bool simple = false)
       displaywithtime(N);
     }
   }
-  else
+  else // displays simple number flash ending
   {
     for (int i = 0; i < 30; i++)
     {
@@ -245,33 +288,37 @@ void End(int result, bool simple = false)
       delay(300);
     }
   }
-  exit(1);
+  exit(1); // exit code, to restart, hit the reset button
 };
 
-void ballchange()
+void ballchange() // ball changes
 {
-  if (balldelay)
+  if (balldelay) // if the previous time was recorded
   {
-    if (millis() - timeupdate > balldelaytime)
+    if (millis() - timeupdate > balldelaytime) // if the difference in time is sufficient
     {
-      if (ballX == 1 || ballX == 6)
+      if (ballX == 1 || ballX == 6) // if on player border
       {
         if (ballX == 1)
         {
           check = -1;
         }
-        if (memory[ballY][ballX + check] != 1)
+        else
+        {
+          check = 1;
+        }
+        if (memory[ballY][ballX + check] != 1) // if player edge doesnt block their end.
         {
           if (check == -1)
           {
-            End(1, true);
+            End(2, true); // calls End()
           }
           else if (check == 1)
           {
-            End(2, true);
+            End(1, true); // calls End()
           }
         }
-        else
+        else // switch direction on edge
         {
           if (ballXdirection == 1)
           {
@@ -283,7 +330,7 @@ void ballchange()
           }
         }
       }
-      if (ballXdirection == 1)
+      if (ballXdirection == 1) // change ballX +/- 1
       {
         ballX++;
       }
@@ -292,7 +339,7 @@ void ballchange()
         ballX--;
       }
 
-      if (ballY == 0 || ballY == 7)
+      if (ballY == 0 || ballY == 7) // if on edge change direction
       {
         if (ballYdirection == 1)
         {
@@ -303,7 +350,7 @@ void ballchange()
           ballYdirection = 1;
         }
       }
-      if (ballYdirection == 1)
+      if (ballYdirection == 1) // change ballY +/- 1
       {
         ballY++;
       }
@@ -315,47 +362,25 @@ void ballchange()
       balldelay = false;
     }
   }
-  else
+  else // record the prvious time
   {
     timeupdate = millis();
     balldelay = true;
   }
 };
 
-int limitingshift(int value, bool change)
-{
-  int mem;
-  if (value < 3 && change == true)
-  {
-    mem = value + 1;
-  }
-  else if (value > -2 && change == false)
-  {
-    mem = value - 1;
-  }
-  return mem;
-};
-
 void setup()
 {
-  Serial.begin(9600);
-  for (int i = 2; i < 6; i++)
+  for (int i = 2; i < 6; i++) // set input pins
   {
     pinMode(i, INPUT);
   }
-  Serial.begin(9600);
 };
 
-void loop()
+void loop() // calling functions in sequence
 {
   updateMem();
   display();
   checkbutton();
   ballchange();
-  // Serial.print(millis());
-  // Serial.print(" - ");
-  // Serial.print(timeupdate);
-  // Serial.print(" = ");
-  // Serial.println(millis() - timeupdate);
-  // delay(1000);
 };
