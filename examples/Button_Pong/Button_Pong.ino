@@ -141,7 +141,7 @@ int limitingshift(int value, bool change) // limiting the input of players
 
 void fasterball()//increase ball speed
 {
-balldelaytime = ceil(1000 - millis() / 90);
+balldelaytime = ceil(500 - millis() / 150);
 }
 
 void checkbutton() // checking for button inputs
