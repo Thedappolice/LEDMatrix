@@ -1,8 +1,8 @@
 #include <LEDMatrix.h>
 
 // (Row/Column) pins must be put in ascending order, follow your datasheet.
-int posPin[] = { 6, 7, 8, 9, 10, 11, 12, 13 };
-int negPin[] = { A0, A1, A2, A3, A4, A5, A6, A7 };
+int posPin[] = { 2, 3, 4, 5, 6, 7, 8, 9 };
+int negPin[] = { 10, 11, 12, 13, A0, A1, A2, A3 };
 
 //"Z" named 2d matrix
 int Z[8][8] = {

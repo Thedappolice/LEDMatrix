@@ -1,8 +1,8 @@
 #include <LEDMatrix.h>
 
 // (Row/Column) pins must be put in ascending order, follow your datasheet.
-int posPin[] = {6, 7, 8, 9, 10, 11, 12, 13};
-int negPin[] = {A0, A1, A2, A3, A4, A5, A6, A7};
+int posPin[] = { 2, 3, 4, 5, 6, 7, 8, 9 };
+int negPin[] = { 10, 11, 12, 13, A0, A1, A2, A3 };
 
 // array to show specific pattern called "wall"
 int wall[] = {0, 0, 1, 1, 1, 0, 0, 0};
@@ -18,10 +18,10 @@ LEDMatrix LM(posPin, 8, negPin, 8); // Initialization
 */
 
 // defining terms resembling pins to increase readability
-#define P1left 4
-#define P1right 5
-#define P2left 2
-#define P2right 3
+#define P1left A4
+#define P1right A5
+#define P2left A6
+#define P2right A7
 
 // variables for time control
 bool balldelay = false;
