@@ -1,8 +1,8 @@
 #include <LEDMatrix.h>
 
 // (Row/Column) pins must be put in ascending order, follow your datasheet.
-int posPin[] = { 2, 3, 4, 5, 6, 7, 8, 9 };
-int negPin[] = { 10, 11, 12, 13, A0, A1, A2, A3 };
+int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
 // array to show specific pattern called "wall"
 int wall[] = {0, 0, 1, 1, 1, 0, 0, 0};
@@ -48,10 +48,9 @@ int P2change = 0;
 int P1shift = 0;
 int P2shift = 0;
 
-// allocate space for game memory
+// allocate space for game assets
 int memory[8][8];
-
-// fixed symbols for display purposes
+bool simplicity = false; // change to true for a simplier ending display
 int W[8][8] = {
     {1, 0, 0, 0, 0, 0, 0, 1},
     {1, 0, 0, 0, 0, 0, 0, 1},
@@ -139,9 +138,9 @@ int limitingshift(int value, bool change) // limiting the input of players
   return mem;
 };
 
-void fasterball()//increase ball speed
+void fasterball() // increase ball speed
 {
-balldelaytime = ceil(500 - millis() / 150);
+  balldelaytime = ceil(500 - millis() / 150);
 }
 
 void checkbutton() // checking for button inputs
@@ -323,11 +322,11 @@ void ballchange() // ball changes
         {
           if (check == -1)
           {
-            End(2, false); // calls End()
+            End(2, simplicity); // calls End()
           }
           else if (check == 1)
           {
-            End(1, false); // calls End()
+            End(1, simplicity); // calls End()
           }
         }
         else // switch direction on edge
@@ -383,10 +382,6 @@ void ballchange() // ball changes
 
 void setup()
 {
-  for (int i = 2; i < 6; i++) // set input pins
-  {
-    pinMode(i, INPUT);
-  }
   displaywithtime(N3); // countdown
   displaywithtime(N2);
   displaywithtime(N1);
