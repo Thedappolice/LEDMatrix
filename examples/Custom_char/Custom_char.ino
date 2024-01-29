@@ -94,22 +94,22 @@ void setup() {
 }
 
 void loop() {
-  while (millis() / 1000 < 3) {
+  while (millis() / 1000 < 2) {
     LM.Symbol(Z);//Object_name.Symbol(name_of_character);
   }
-  while (millis() / 1000 < 6) {
+  while (millis() / 1000 < 4) {
     LM.Symbol(E);
   }
-  while (millis() / 1000 < 9) {
+  while (millis() / 1000 < 6) {
     LM.Symbol(N);
   }
-  while (millis() / 1000 < 12) {
+  while (millis() / 1000 < 8) {
     LM.Symbol(I);
   }
-  while (millis() / 1000 < 15) {
+  while (millis() / 1000 < 10) {
     LM.Symbol(U);
   }
-  while (millis() / 1000 < 18) {
+  while (millis() / 1000 < 12) {
     LM.Symbol(S);
   }
   LM.Symbol(End);
