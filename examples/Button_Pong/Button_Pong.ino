@@ -18,10 +18,10 @@ LEDMatrix LM(posPin, 8, negPin, 8); // Initialization
 */
 
 // defining terms resembling pins to increase readability
-#define P1left A4
-#define P1right A5
+#define P1left A5
+#define P1right A7
 #define P2left A6
-#define P2right A7
+#define P2right A4
 
 // variables for time control
 bool balldelay = false;
@@ -125,6 +125,18 @@ void displaywithtime(int Matrix[][8], int time = 1000)
   }
 };
 
+int checkstate(int value) // analog input to digital input
+{
+  if (value > 1000)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+};
+
 int limitingshift(int value, bool change) // limiting the input of players
 {
   if (value < 3 && change == true)
@@ -145,10 +157,11 @@ void fasterball() // increase ball speed
 
 void checkbutton() // checking for button inputs
 {
-  P1leftstat = digitalRead(P1left); // reads
-  P1rightstat = digitalRead(P1right);
-  P2leftstat = digitalRead(P2left);
-  P2rightstat = digitalRead(P2right);
+  P1leftstat = checkstate(analogRead(P1left)); // reads
+  P1rightstat = checkstate(analogRead(P1right));
+  P2leftstat = checkstate(analogRead(P2left));
+  P2rightstat = checkstate(analogRead(P2right));
+
   if (P1change == 0) // only change if the user has let go of the button
   {
     if (P1leftstat == 1 || P1rightstat == 1)
