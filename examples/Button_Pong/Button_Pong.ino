@@ -49,7 +49,7 @@ int P1shift = 0;
 int P2shift = 0;
 
 // allocate space for game assets
-int memory[8][8];
+int memory[8][8] = {{0}};
 bool simplicity = false; // change to true for a simplier ending display
 int W[8][8] = {
     {1, 0, 0, 0, 0, 0, 0, 1},
