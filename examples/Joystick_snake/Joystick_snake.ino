@@ -1,4 +1,4 @@
-see#include <LEDMatrix.h>
+I'msee#include <LEDMatrix.h>
 
 int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
@@ -95,6 +95,17 @@ direction = 'up';
 if(analogRead(A6) < 512)
 {
 direction = 'down';
+}
+};
+
+void updateMem()
+{
+for(int i =0; i <8;i++)
+{
+for(int j =0; j<8;j++)
+{
+if(memory[i][j])
+}
 }
 };
 
