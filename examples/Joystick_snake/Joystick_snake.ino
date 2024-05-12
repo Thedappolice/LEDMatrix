@@ -1,9 +1,12 @@
-#include <LEDMatrix.h>
+see#include <LEDMatrix.h>
 
 int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
 LEDMatrix LM(posPin, 8, negPin, 8);
+
+int headX;
+int headY;
 
 int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -57,6 +60,7 @@ int memory[8][8] = {
 };
 
 bool end = false;
+string direction;
 
 
 void MemtoDisplay()
@@ -73,8 +77,30 @@ void MemtoDisplay()
     }
 };
 
+void checkJST()
+{
+if(analogRead(A5) > 512)
+{
+direction = 'right';
+}else
+{
+if(analogRead(A5) < 512)
+{
+direction = 'left';
+}else
+if(analogRead(A6) > 512)
+{
+direction = 'up';
+}else
+if(analogRead(A6) < 512)
+{
+direction = 'down';
+}
+};
+
 void setup()
 {
+digitalWrite(A4,HIGH);
     MemtoDisplay();
     displaywithtime(N3); // countdown
     displaywithtime(N2);
