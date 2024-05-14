@@ -1,12 +1,12 @@
-I'msee#include <LEDMatrix.h>
+#include <LEDMatrix.h>
 
 int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
 LEDMatrix LM(posPin, 8, negPin, 8);
 
-int headX;
-int headY;
+int JoyX;
+int JoyY;
 
 int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -60,8 +60,7 @@ int memory[8][8] = {
 };
 
 bool end = false;
-string direction;
-
+String direction = "up";
 
 void MemtoDisplay()
 {
@@ -79,53 +78,56 @@ void MemtoDisplay()
 
 void checkJST()
 {
-if(analogRead(A5) > 512)
-{
-direction = 'right';
-}else
-{
-if(analogRead(A5) < 512)
-{
-direction = 'left';
-}else
-if(analogRead(A6) > 512)
-{
-direction = 'up';
-}else
-if(analogRead(A6) < 512)
-{
-direction = 'down';
-}
+    if (analogRead(A6) > 768)
+    {
+        direction = "right";
+    }
+    else if (analogRead(A6) < 256)
+    {
+        direction = "left";
+    }
+    else if (analogRead(A7) > 768)
+    {
+        direction = "up";
+    }
+    else if (analogRead(A7) < 256)
+    {
+        direction = "down";
+    }
 };
 
 void updateMem()
 {
-for(int i =0; i <8;i++)
-{
-for(int j =0; j<8;j++)
-{
-if(memory[i][j])
-}
-}
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (memory[i][j] != 0)
+            {
+                displayM[i][j] = 1;
+            }
+        }
+    }
 };
 
 void setup()
 {
-digitalWrite(A4,HIGH);
-    MemtoDisplay();
-    displaywithtime(N3); // countdown
-    displaywithtime(N2);
-    displaywithtime(N1);
-    for (int i = 0; i < 20; i++) // blink the ball position, showing the starting position
-    {
-        LM.Symbol(displayM);
-        delay(100);
-    }
+    Serial.begin(9600);
+    // MemtoDisplay();
+    // displaywithtime(N3); // countdown
+    // displaywithtime(N2);
+    // displaywithtime(N1);
+    // for (int i = 0; i < 20; i++) // blink the ball position, showing the starting position
+    // {
+    //     LM.Symbol(displayM);
+    //     delay(100);
+    // }
 }
 void loop()
 {
-    while (!end)
-    {
-
-    }
+    checkJST();
+    Serial.println(direction);
+    // while (!end)
+    // {
+    // }
 }
