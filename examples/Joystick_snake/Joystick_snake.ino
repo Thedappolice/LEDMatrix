@@ -8,6 +8,9 @@ LEDMatrix LM(posPin, 8, negPin, 8);
 int JoyX;
 int JoyY;
 
+bool food = false;
+int Mayfood[64][2] = {{0}};
+
 unsigned long timeupdate;
 
 int End[8][8] = {
@@ -66,24 +69,10 @@ String direction = "up";
 
 void displaywithtime(int Matrix[][8], int time = 1000)
 {
-  timeupdate = millis();
-  while (millis() - timeupdate < time)
-  {
-    LM.Symbol(Matrix);
-  }
-};
-
-void MemtoDisplay()
-{
-    for (int i = 0; i < 8; i++)
+    timeupdate = millis();
+    while (millis() - timeupdate < time)
     {
-        for (int j = 0; j < 8; j++)
-        {
-            if (memory[i][j] != 0)
-            {
-                displayM[i][j] = 1;
-            }
-        }
+        LM.Symbol(Matrix);
     }
 };
 
@@ -107,18 +96,32 @@ void checkJST()
     }
 };
 
-void updateMem()
+void food()
 {
-    for (int i = 0; i < 8; i++)
+    if (food == false)
     {
-        for (int j = 0; j < 8; j++)
+        int count = 0;
+        int Fplace;
+        for (int i = 0; i < 8; i++)
         {
-            if (memory[i][j] != 0)
+            for (int j = 0; j < 8; j++)
             {
-                displayM[i][j] = 1;
+                if (memory[i][j] < 1)
+                {
+                    Mayfood[count][0] = i;
+                    Mayfood[count][1] = j;
+                }
             }
+            count++;
         }
+        count = random(0, count);
+        memory[count][Mayfood[count][1]] = -1;
+        food = true;
     }
+};
+
+void refreshMem() {
+
 };
 
 void setup()
@@ -137,10 +140,11 @@ void setup()
 
 void loop()
 {
-    
-    Serial.println(direction);
-    // while (!end)
-    // {
-    //   checkJST();
-    // }
+    while (!end)
+    {
+        food();
+        checkJST();
+        refreshMem();
+        displayM();
+    }
 }
