@@ -18,10 +18,10 @@ LEDMatrix LM(posPin, 8, negPin, 8); // Initialization
 */
 
 // defining terms resembling pins to increase readability
-#define P1left A5
-#define P1right A7
-#define P2left A6
-#define P2right A4
+#define P1left A4
+#define P1right A5
+#define P2left A7
+#define P2right A6
 
 // variables for time control
 bool balldelay = false;

@@ -8,6 +8,8 @@ LEDMatrix LM(posPin, 8, negPin, 8);
 int JoyX;
 int JoyY;
 
+unsigned long timeupdate;
+
 int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -62,6 +64,15 @@ int memory[8][8] = {
 bool end = false;
 String direction = "up";
 
+void displaywithtime(int Matrix[][8], int time = 1000)
+{
+  timeupdate = millis();
+  while (millis() - timeupdate < time)
+  {
+    LM.Symbol(Matrix);
+  }
+};
+
 void MemtoDisplay()
 {
     for (int i = 0; i < 8; i++)
@@ -78,21 +89,21 @@ void MemtoDisplay()
 
 void checkJST()
 {
-    if (analogRead(A6) > 768)
-    {
-        direction = "right";
-    }
-    else if (analogRead(A6) < 256)
+    if (analogRead(A7) > 768)
     {
         direction = "left";
     }
-    else if (analogRead(A7) > 768)
-    {
-        direction = "up";
-    }
     else if (analogRead(A7) < 256)
     {
+        direction = "right";
+    }
+    else if (analogRead(A6) > 768)
+    {
         direction = "down";
+    }
+    else if (analogRead(A6) < 256)
+    {
+        direction = "up";
     }
 };
 
@@ -113,21 +124,23 @@ void updateMem()
 void setup()
 {
     Serial.begin(9600);
-    // MemtoDisplay();
-    // displaywithtime(N3); // countdown
-    // displaywithtime(N2);
-    // displaywithtime(N1);
-    // for (int i = 0; i < 20; i++) // blink the ball position, showing the starting position
-    // {
-    //     LM.Symbol(displayM);
-    //     delay(100);
-    // }
-}
+    MemtoDisplay();
+    displaywithtime(N3); // countdown
+    displaywithtime(N2);
+    displaywithtime(N1);
+    for (int i = 0; i < 20; i++) // blink the ball position, showing the starting position
+    {
+        LM.Symbol(displayM);
+        delay(100);
+    }
+};
+
 void loop()
 {
-    checkJST();
+    
     Serial.println(direction);
     // while (!end)
     // {
+    //   checkJST();
     // }
 }

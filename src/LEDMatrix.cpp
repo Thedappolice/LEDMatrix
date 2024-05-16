@@ -211,25 +211,23 @@ void LEDMatrix::Test()
 
 void LEDMatrix::Symbol(int UserMatrix[][8])
 {
-  for (int i = 0; i < Col; i++) // repeating for each Column
+  for (int i = 0; i < Row; i++) // repeating for each Row
   {
-    for (int n = 0; n < Col; n++) // repeating for each entity of array
-    {
-      OutputCol[n] = UserMatrix[i][n]; // ispecting each entity of array
-    }
-    digitalWrite(Pins[i], HIGH);  // pulling the i-th Column Pin HIGH
-    for (int j = 0; j < Row; j++) // repeating for each Row
-    {
-      if (OutputCol[j] == 1)
+    for (int j = 0; j < Col; j++) // repeating for each entity of array
+
+      if (UserMatrix[j][i] == 1)
       {
-        digitalWrite(Pins[Col + j], LOW); // pulling pin LOW to light LED
+        digitalWrite(Pins[j], HIGH); // pulling pin HIGH to light LED
       }
       else
       {
-        digitalWrite(Pins[Col + j], HIGH); // pulling pin HIGH to dim LED
+        digitalWrite(Pins[j], LOW); // pulling pin LOW to dim LED
       }
-    }
-    Clear(); // Clearing up
+
+    // pulling the i-th Row Pin LOW
+    digitalWrite(Pins[i + Col], LOW);
+
+    Clear(i); // Clearing up
   }
 }
 
@@ -271,15 +269,22 @@ int LEDMatrix::limitingRows(int yRow)
   return limitedy;
 }
 
-void LEDMatrix::Clear(int time)
+void LEDMatrix::Clear(int n_Row)
 {
   delay(2);
-  for (int i = 0; i < NumPins; i++)
+  if (n_Row != -1)
+  {
+    digitalWrite(Pins[Col + n_Row], HIGH);
+  }
+  else
+  {
+    for (int i = 0; i < Row; i++)
+    {
+      digitalWrite(Pins[Col + i], HIGH);
+    }
+  }
+  for (int i = 0; i < Col; i++)
   {
     digitalWrite(Pins[i], LOW);
-  }
-  if (time != 0)
-  {
-    delay(time);
   }
 }

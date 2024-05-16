@@ -27,7 +27,7 @@ private:
     int *Pins;
     int NumPins;
 
-    void Clear(int time = 0); // clears the display, delayable
+    void Clear(int n_Row = -1); // clears the display, delayable
 
     int limitingCols(int xCol); // limits x inputs
     int limitingRows(int yRow); // limits y inputs
