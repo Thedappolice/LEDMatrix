@@ -52,7 +52,7 @@ int N3[8][8] = {
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 0, 1, 1, 1, 1, 0, 0}};
 
-int displayM[8][8] = {{0}};
+int display[8][8] = {{0}};
 int memory[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -122,6 +122,20 @@ void food()
 
 void refreshMem() {
 
+};
+
+MemtoDisplay()
+{
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (memory[i][j] != 0)
+            {
+                display[i][j] = 1;
+            }
+        }
+    }
 };
 
 void setup()
