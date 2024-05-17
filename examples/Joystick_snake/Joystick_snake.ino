@@ -9,7 +9,7 @@ int JoyX;
 int JoyY;
 
 bool food = false;
-int Mayfood[64][2] = {{0}};
+int Mayfood[][2] = {{0}};
 
 unsigned long timeupdate;
 
