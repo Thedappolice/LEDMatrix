@@ -8,6 +8,8 @@ LEDMatrix LM(posPin, 8, negPin, 8);
 int JoyX;
 int JoyY;
 
+int length=3;
+
 bool food = false;
 int Mayfood[][2] = {{0}};
 
@@ -65,7 +67,7 @@ int memory[8][8] = {
 };
 
 bool end = false;
-String direction = "up";
+char facing = 'u';
 
 void displaywithtime(int Matrix[][8], int time = 1000)
 {
@@ -76,24 +78,29 @@ void displaywithtime(int Matrix[][8], int time = 1000)
     }
 };
 
-void checkJST()
+void checkdirection()
 {
+int direction;
     if (analogRead(A7) > 768)
     {
-        direction = "left";
+        direction = 3;
     }
     else if (analogRead(A7) < 256)
     {
-        direction = "right";
+        direction = 1;
     }
     else if (analogRead(A6) > 768)
     {
-        direction = "down";
+        direction = 2;
     }
     else if (analogRead(A6) < 256)
     {
-        direction = "up";
+        direction = 0;
     }
+
+char directions[4]= {'u','r','d','l'}
+if()
+
 };
 
 void food()
@@ -157,7 +164,7 @@ void loop()
     while (!end)
     {
         food();
-        checkJST();
+        checkdirection();
         refreshMem();
         displayM();
     }
