@@ -90,8 +90,7 @@ int memory[8][8][3] = {
 char direction = 'u';
 bool end = false;
 
-void
-displaywithtime (int Matrix[][8], int time = 1000)
+void displaywithtime (int Matrix[][8], int time = 1000)
 {
   timeupdate = millis ();
   while (millis () - timeupdate < time)
@@ -100,8 +99,7 @@ displaywithtime (int Matrix[][8], int time = 1000)
 	}
 };
 
-void
-checkdirection ()
+void checkdirection ()
 {
   char JYSTCK = direction;		// Default to current direction
   if (analogRead (A7) > 768)
@@ -144,8 +142,7 @@ checkdirection ()
 	}
 };
 
-void
-generateFood ()
+void generateFood ()
 {
   if (!foodExists)
 	{
@@ -171,8 +168,7 @@ generateFood ()
 	}
 };
 
-void
-refreshMem ()
+void refreshMem ()
 {
   int count = 0;
   for (int c = 0; c < length; c++)
@@ -245,8 +241,7 @@ refreshMem ()
 };
 
 
-void
-MemtoDisplay ()
+void MemtoDisplay ()
 {
   for (int i = 0; i < 8; i++)
 	{
@@ -291,8 +286,7 @@ ending ()
 
 };
 
-void
-setup ()
+void setup ()
 {
   Serial.begin (9600);
   MemtoDisplay ();
@@ -303,9 +297,9 @@ setup ()
 	{							// blink the ball position, showing the starting position L
 	  M.Symbol (display);
 	  delay (100);
-}} void
+}};
 
-loop ()
+void loop ()
 {
   while (!end)
 	{
