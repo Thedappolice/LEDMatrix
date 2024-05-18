@@ -12,7 +12,8 @@ int JoyY;
 
 int length = 2;
 int body[64][2] = { {0} };		// Assuming a maximum length of 64 for the body
-int head[2]={0};
+int head[2] = { 0 };
+
 int headvalue;
 
 bool foodExists = false;
@@ -181,12 +182,12 @@ refreshMem ()
 			{
 			  if (memory[i][j][2] == length - c)
 				{
-if (memory[i][j][2]==1 )
-{
-head[0] = i;
-head[1] = j;
-}
-				  memory[i][j][2]=memory[i][j][2]++;
+				  if (memory[i][j][2] == 1)
+					{
+					  head[0] = i;
+					  head[1] = j;
+					}
+				  memory[i][j][2] = memory[i][j][2]++;
 				}
 			}
 		}
@@ -194,54 +195,53 @@ head[1] = j;
 
 
 
-switch(direction)
-{
-case 'u':
-if(head[0]-1 <0)
-{
-end = true;
-}
-else
-{
-head[0] = head[0]-1;
-}
-break;
-case 'd':
+  switch (direction)
+	{
+	case 'u':
+	  if (head[0] - 1 < 0)
+		{
+		  end = true;
+		}
+	  else
+		{
+		  head[0] = head[0] - 1;
+		}
+	  break;
+	case 'd':
 
-if(head[0]+1 >7)
-{
-end = true;
-}
-else
-{
-head[0] = head[0]-1;
-}
-break;
-case 'l':
+	  if (head[0] + 1 > 7)
+		{
+		  end = true;
+		}
+	  else
+		{
+		  head[0] = head[0] - 1;
+		}
+	  break;
+	case 'l':
 
-if(head[1]-1 <0)
-{
-end = true;
-}
-else
-{
-head[1] = head[1]-1;
-}
-break;
-case 'r':
+	  if (head[1] - 1 < 0)
+		{
+		  end = true;
+		}
+	  else
+		{
+		  head[1] = head[1] - 1;
+		}
+	  break;
+	case 'r':
 
-if(head[1]+1 >7)
-{
-end = true;
-}
-else
-{
-head[1] = head[1]-1
-}
-break;
-}
+	  if (head[1] + 1 > 7)
+		{
+		  end = true;
+		}
+	  else
+		{
+		head[1] = head[1] - 1}
+	  break;
+	}
 
-memory[head[0]][head[1]][2] = 1;
+  memory[head[0]][head[1]][2] = 1;
 
 }
 
@@ -283,13 +283,13 @@ loop ()
 {
   while (!end)
 	{
-generateFood ();
-MemtoDisplay ();
-	  	  checkdirection ();
+	  generateFood ();
+	  MemtoDisplay ();
+	  checkdirection ();
 	  refreshMem ();
-	  displaywithtime(display);
-	  
+	  displaywithtime (display);
+
 	}
-end();
+  end ();
 
 }
