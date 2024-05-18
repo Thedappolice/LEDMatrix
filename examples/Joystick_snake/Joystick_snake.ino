@@ -98,7 +98,7 @@ displaywithtime (int Matrix[][8], int time = 1000)
 	{
 	  LM.Symbol (Matrix);
 	}
-}
+};
 
 void
 checkdirection ()
@@ -142,7 +142,7 @@ checkdirection ()
 	{
 	  direction = JYSTCK;
 	}
-}
+};
 
 void
 generateFood ()
@@ -169,8 +169,9 @@ generateFood ()
 		  foodExists = true;
 		}
 	}
-} void
+};
 
+void
 refreshMem ()
 {
   int count = 0;
@@ -192,8 +193,6 @@ refreshMem ()
 			}
 		}
 	}
-
-
 
   switch (direction)
 	{
@@ -243,7 +242,7 @@ refreshMem ()
 
   memory[head[0]][head[1]][2] = 1;
 
-}
+};
 
 
 void
@@ -263,7 +262,34 @@ MemtoDisplay ()
 			}
 		}
 	}
-}
+};
+
+ending ()
+{
+  for (int i = 0; i < 10; i++)
+	{
+	  M.Symbol (display);
+	  delay (100);
+	}
+
+  for (int c = length; c < 0; c--)
+	{
+	  for (int i = 0; i < 8; i++)
+		{
+		  for (int j = 0; j < 8; j++)
+			{
+			  if (memory[i][j][2] = c + 1)
+				{
+				  memory[i][j][2] = 0;
+				  MemtoDispay ();
+				  displaywithtime (display, 250);
+				}
+			}
+		}
+	}
+  displaywithtime (End, 10000);
+
+};
 
 void
 setup ()
@@ -290,6 +316,7 @@ loop ()
 	  displaywithtime (display);
 
 	}
-  end ();
+  ending ();
+  exit (0);
 
 }
