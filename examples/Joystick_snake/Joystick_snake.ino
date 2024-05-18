@@ -10,8 +10,10 @@ LEDMatrix LM (posPin, 8, negPin, 8);
 int JoyX;
 int JoyY;
 
-int length = 3;
+int length = 2;
 int body[64][2] = { {0} };		// Assuming a maximum length of 64 for the body
+int head[2]={0};
+int headvalue;
 
 bool foodExists = false;
 int Mayfood[64][2] = { {0} };	// Assuming a maximum of 64 possible food locations
@@ -179,14 +181,70 @@ refreshMem ()
 			{
 			  if (memory[i][j][2] == length - c)
 				{
-				  body[count][0] = i;
-				  body[count][1] = j;
-				  count++;
+if (memory[i][j][2]==1 )
+{
+head[0] = i;
+head[1] = j;
+}
+				  memory[i][j][2]=memory[i][j][2]++;
 				}
 			}
 		}
 	}
+
+
+
+switch(direction)
+{
+case 'u':
+if(head[0]-1 <0)
+{
+end = true;
 }
+else
+{
+head[0] = head[0]-1;
+}
+break;
+case 'd':
+
+if(head[0]+1 >7)
+{
+end = true;
+}
+else
+{
+head[0] = head[0]-1;
+}
+break;
+case 'l':
+
+if(head[1]-1 <0)
+{
+end = true;
+}
+else
+{
+head[1] = head[1]-1;
+}
+break;
+case 'r':
+
+if(head[1]+1 >7)
+{
+end = true;
+}
+else
+{
+head[1] = head[1]-1
+}
+break;
+}
+
+memory[head[0]][head[1]][2] = 1;
+
+}
+
 
 void
 MemtoDisplay ()
@@ -225,10 +283,13 @@ loop ()
 {
   while (!end)
 	{
-	  generateFood ();
-	  checkdirection ();
+generateFood ();
+MemtoDisplay ();
+	  	  checkdirection ();
 	  refreshMem ();
-	  MemtoDisplay ();
-	  LM.Symbol (display);
+	  displaywithtime(display);
+	  
 	}
+end();
+
 }
