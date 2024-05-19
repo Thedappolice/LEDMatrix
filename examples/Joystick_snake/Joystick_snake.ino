@@ -83,7 +83,8 @@ int memory[8][8][3] = {
     {{7, 0, 0}, {7, 1, 0}, {7, 2, 0}, {7, 3, 0}, {7, 4, 0}, {7, 5, 0}, {7, 6, 0}, {7, 7, 0}}};
 
 char direction = 'u';
-int end = 0;
+bool end = false;
+bool win = false;
 
 void displaywithtime(int Matrix[][8], int time = 1000)
 {
@@ -173,7 +174,8 @@ void generateFood()
         }
         else
         {
-            end = -1;
+            end = true;
+            win = true;
         }
     }
 }
@@ -206,7 +208,7 @@ void refreshMem()
     case 'u':
         if (head[0] - 1 < 0)
         {
-            end = 1;
+            end = true;
         }
         else
         {
@@ -216,7 +218,7 @@ void refreshMem()
     case 'd':
         if (head[0] + 1 > 7)
         {
-            end = 1;
+            end = true;
         }
         else
         {
@@ -226,7 +228,7 @@ void refreshMem()
     case 'l':
         if (head[1] - 1 < 0)
         {
-            end = 1;
+            end = true;
         }
         else
         {
@@ -236,7 +238,7 @@ void refreshMem()
     case 'r':
         if (head[1] + 1 > 7)
         {
-            end = 1;
+            end = true;
         }
         else
         {
@@ -312,33 +314,14 @@ void ending()
             }
         }
     }
-    displaywithtime(End, 10000);
-};
-
-void win()
-{
-    for (int i = 0; i < 10; i++)
+    if (!win)
     {
-        LM.Symbol(display);
-        delay(100);
+        displaywithtime(End, 10000);
     }
-
-    for (int c = length; c > 0; c--)
+    else
     {
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                if (memory[i][j][2] == c)
-                {
-                    memory[i][j][2] = 0;
-                    MemtoDisplay();
-                    displaywithtime(display, 250);
-                }
-            }
-        }
+        displaywithtime(Win, 10000);
     }
-    displaywithtime(Win, 10000);
 };
 
 void setup()
@@ -369,7 +352,7 @@ void loop()
     if (currentMillis - previousMillis >= interval)
     {
         previousMillis = currentMillis;
-        if (end == 0)
+        if (!end)
         {
             generateFood();
             checkdirection();
@@ -377,13 +360,9 @@ void loop()
             MemtoDisplay();
             displaywithtime(display, interval);
         }
-        else if (end == -1)
-        {
-            ending();
-        }
         else
         {
-            win();
+            ending();
         }
     }
 }
