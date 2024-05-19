@@ -10,9 +10,9 @@ LEDMatrix LM(posPin, 8, negPin, 8);
 int JoyX;
 int JoyY;
 
-int length = 2;
+int length = 3;
 int body[64][2] = {{0}}; // Assuming a maximum length of 64 for the body
-int head[2] = {0};
+int head[2] = {4, 4};
 
 bool foodExists = false;
 int Mayfood[64][2] = {{0}}; // Assuming a maximum of 64 possible food locations
@@ -190,43 +190,10 @@ void generateFood()
     }
 }
 
-void refreshMem()
+void crefreshMem()
 {
-    // Clear previous body positions
-    for (int i = 0; i < 64; i++)
-    {
-        for (int j = 0; j < 2; j++)
-        {
-            body[i][j] = 0;
-        }
-    }
-
+    int prelength = length;
     bool eat = false;
-    int count = 0;
-
-    // Update body positions and check if snake eats
-    for (int c = 0; c < length; c++)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                if (memory[i][j][2] == length + 1 - c)
-                {
-                    if (memory[i][j][2] == 1)
-                    {
-                        head[0] = i;
-                        head[1] = j;
-                    }
-                    memory[i][j][2]++;
-                    body[count][0] = i;
-                    body[count][1] = j;
-                    count++;
-                }
-            }
-        }
-    }
-
     // Update head position based on direction
     switch (direction)
     {
@@ -277,7 +244,7 @@ void refreshMem()
     }
 
     // Check if the snake hits itself
-    for (int i = 0; i < length; i++)
+    for (int i = 0; i < length - 1; i++)
     {
         if (body[i][0] == head[0] && body[i][1] == head[1])
         {
@@ -290,19 +257,50 @@ void refreshMem()
     if (memory[head[0]][head[1]][2] == -1)
     {
         eat = true;
+        prelength++;
+        foodExists = false;
     }
-    memory[head[0]][head[1]][2] = 1;
 
-    // If the snake didn't eat, dim the last LED to retain length
-    if (!eat)
+    if (eat)
     {
-        memory[body[0][0]][body[0][1]][2] = 0;
+        for (int i = 0; i < length; i++)
+        {
+            body[length - i][0] = body[length - i - 1][0];
+            body[length - i][1] = body[length - i - 1][1];
+        }
+        body[0][0] = head[0];
+        body[0][1] = head[1];
     }
     else
     {
-        length++;
-        foodExists = false;
+        for (int i = 0; i < length - 1; i++)
+        {
+            body[length - i - 1][0] = body[length - i][0];
+            body[length - i - 1][1] = body[length - i][1];
+        }
+        body[0][0] = head[0];
+        body[0][1] = head[1];
     }
+
+    for (int i = 0; i < 8)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (memory[i][j][2] > 0)
+            {
+                memory[i][j][2] = 0;
+            }
+        }
+    }
+
+    memory[head[0]][head[1]][2] = 1;
+
+    for (int i = 0; i < length - 1; i++)
+    {
+        memory[body[i + 1][0]][body[i + 1][1]][2] = i + 2;
+    }
+
+    length = prelength;
 };
 
 void MemtoDisplay()
@@ -363,10 +361,12 @@ void ending()
 
 void setup()
 {
-    Serial.begin(9600);
-    // Initial snake head position at the center or a specific starting point
-    head[0] = 4;
-    head[1] = 4;
+    body[0][0] = 4;
+    body[0][1] = 4;
+    body[1][0] = 5;
+    body[1][1] = 4;
+    body[2][0] = 6;
+    body[2][1] = 4;
 
     MemtoDisplay();
     displaywithtime(N3); // Countdown
