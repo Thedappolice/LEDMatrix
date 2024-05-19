@@ -261,26 +261,13 @@ void crefreshMem()
         foodExists = false;
     }
 
-    if (eat)
+    for (int i = length - 1; i > 0; i--)
     {
-        for (int i = 0; i < length; i++)
-        {
-            body[length - i][0] = body[length - i - 1][0];
-            body[length - i][1] = body[length - i - 1][1];
-        }
-        body[0][0] = head[0];
-        body[0][1] = head[1];
+        body[i][0] = body[i - 1][0];
+        body[i][1] = body[i - 1][1];
     }
-    else
-    {
-        for (int i = 0; i < length - 1; i++)
-        {
-            body[length - i - 1][0] = body[length - i][0];
-            body[length - i - 1][1] = body[length - i][1];
-        }
-        body[0][0] = head[0];
-        body[0][1] = head[1];
-    }
+    body[0][0] = head[0];
+    body[0][1] = head[1];
 
     for (int i = 0; i < 8)
     {
