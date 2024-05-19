@@ -177,7 +177,7 @@ void generateFood()
         // If there are empty spots, place food
         if (count > 0)
         {
-            int randIndex = random(0, count);
+            int randIndex = (int)random(0, count);
             memory[Mayfood[randIndex][0]][Mayfood[randIndex][1]][2] = -1;
             foodExists = true;
         }
