@@ -14,8 +14,6 @@ int length = 2;
 int body[64][2] = {{0}}; // Assuming a maximum length of 64 for the body
 int head[2] = {0};
 
-int headvalue;
-
 bool foodExists = false;
 int Mayfood[64][2] = {{0}}; // Assuming a maximum of 64 possible food locations
 
@@ -31,6 +29,16 @@ int End[8][8] = {
     {1, 0, 0, 1, 0, 1, 1, 0},
     {1, 1, 1, 1, 0, 1, 0, 1},
     {0, 0, 0, 0, 0, 0, 0, 0}};
+
+int Win[8][8] = {
+    {0, 0, 0, 1, 0, 0, 0, 0},
+    {0, 0, 0, 1, 0, 0, 0, 0},
+    {0, 0, 1, 1, 1, 0, 0, 0},
+    {1, 1, 1, 1, 1, 1, 1, 0},
+    {0, 1, 1, 1, 1, 1, 0, 0},
+    {0, 0, 1, 1, 1, 0, 0, 0},
+    {0, 1, 1, 0, 1, 1, 0, 0},
+    {1, 1, 0, 0, 0, 1, 1, 0}};
 
 int N1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
@@ -75,7 +83,7 @@ int memory[8][8][3] = {
     {{7, 0, 0}, {7, 1, 0}, {7, 2, 0}, {7, 3, 0}, {7, 4, 0}, {7, 5, 0}, {7, 6, 0}, {7, 7, 0}}};
 
 char direction = 'u';
-bool end = false;
+int end = 0;
 
 void displaywithtime(int Matrix[][8], int time = 1000)
 {
@@ -88,72 +96,87 @@ void displaywithtime(int Matrix[][8], int time = 1000)
 
 void checkdirection()
 {
-    char JYSTCK = direction; // Default to current direction
-    if (analogRead(A7) > 768)
-    {
-        JYSTCK = 'l';
-    }
-    else if (analogRead(A7) < 256)
-    {
-        JYSTCK = 'r';
-    }
-    else if (analogRead(A6) > 768)
-    {
-        JYSTCK = 'd';
-    }
-    else if (analogRead(A6) < 256)
-    {
-        JYSTCK = 'u';
-    }
+    static unsigned long lastDebounceTime = 0;
+    unsigned long debounceDelay = 50; // 50 ms debounce delay
+    char JYSTCK = direction;          // Default to current direction
 
-    char oppdirection;
-    switch (direction)
+    if (millis() - lastDebounceTime > debounceDelay)
     {
-    case 'u':
-        oppdirection = 'd';
-        break;
-    case 'd':
-        oppdirection = 'u';
-        break;
-    case 'l':
-        oppdirection = 'r';
-        break;
-    case 'r':
-        oppdirection = 'l';
-        break;
-    }
+        if (analogRead(A7) > 768)
+        {
+            JYSTCK = 'l';
+        }
+        else if (analogRead(A7) < 256)
+        {
+            JYSTCK = 'r';
+        }
+        else if (analogRead(A6) > 768)
+        {
+            JYSTCK = 'd';
+        }
+        else if (analogRead(A6) < 256)
+        {
+            JYSTCK = 'u';
+        }
 
-    if (JYSTCK != oppdirection)
-    {
-        direction = JYSTCK;
+        char oppdirection;
+        switch (direction)
+        {
+        case 'u':
+            oppdirection = 'd';
+            break;
+        case 'd':
+            oppdirection = 'u';
+            break;
+        case 'l':
+            oppdirection = 'r';
+            break;
+        case 'r':
+            oppdirection = 'l';
+            break;
+        }
+
+        if (JYSTCK != oppdirection && JYSTCK != direction)
+        {
+            direction = JYSTCK;
+            lastDebounceTime = millis(); // Update debounce time
+        }
     }
-};
+}
 
 void generateFood()
 {
     if (!foodExists)
     {
         int count = 0;
+
+        // Iterate through the board to find empty spots
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
                 if (memory[i][j][2] == 0)
-                {
+                { // Check for empty spot
                     Mayfood[count][0] = i;
                     Mayfood[count][1] = j;
                     count++;
                 }
             }
         }
+
+        // If there are empty spots, place food
         if (count > 0)
         {
             int randIndex = random(0, count);
             memory[Mayfood[randIndex][0]][Mayfood[randIndex][1]][2] = -1;
             foodExists = true;
         }
+        else
+        {
+            end = -1;
+        }
     }
-};
+}
 
 void refreshMem()
 {
@@ -183,7 +206,7 @@ void refreshMem()
     case 'u':
         if (head[0] - 1 < 0)
         {
-            end = true;
+            end = 1;
         }
         else
         {
@@ -193,7 +216,7 @@ void refreshMem()
     case 'd':
         if (head[0] + 1 > 7)
         {
-            end = true;
+            end = 1;
         }
         else
         {
@@ -203,7 +226,7 @@ void refreshMem()
     case 'l':
         if (head[1] - 1 < 0)
         {
-            end = true;
+            end = 1;
         }
         else
         {
@@ -213,7 +236,7 @@ void refreshMem()
     case 'r':
         if (head[1] + 1 > 7)
         {
-            end = true;
+            end = 1;
         }
         else
         {
@@ -290,17 +313,48 @@ void ending()
         }
     }
     displaywithtime(End, 10000);
-}
+};
+
+void win()
+{
+    for (int i = 0; i < 10; i++)
+    {
+        LM.Symbol(display);
+        delay(100);
+    }
+
+    for (int c = length; c > 0; c--)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                if (memory[i][j][2] == c)
+                {
+                    memory[i][j][2] = 0;
+                    MemtoDisplay();
+                    displaywithtime(display, 250);
+                }
+            }
+        }
+    }
+    displaywithtime(Win, 10000);
+};
 
 void setup()
 {
     Serial.begin(9600);
+    // Initial snake head position at the center or a specific starting point
+    head[0] = 4;
+    head[1] = 4;
+    memory[head[0]][head[1]][2] = 1; // Mark the initial head position
+
     MemtoDisplay();
-    displaywithtime(N3); // countdown
+    displaywithtime(N3); // Countdown
     displaywithtime(N2);
     displaywithtime(N1);
     for (int i = 0; i < 20; i++)
-    { // blink the ball position, showing the starting position
+    {
         LM.Symbol(display);
         delay(100);
     }
@@ -308,13 +362,28 @@ void setup()
 
 void loop()
 {
-    while (!end)
+    unsigned long currentMillis = millis();
+    static unsigned long previousMillis = 0;
+    unsigned long interval = 100; // Refresh interval in milliseconds
+
+    if (currentMillis - previousMillis >= interval)
     {
-        generateFood();
-        MemtoDisplay();
-        checkdirection();
-        refreshMem();
-        displaywithtime(display);
+        previousMillis = currentMillis;
+        if (end == 0)
+        {
+            generateFood();
+            checkdirection();
+            refreshMem();
+            MemtoDisplay();
+            displaywithtime(display, interval);
+        }
+        else if (end == -1)
+        {
+            ending();
+        }
+        else
+        {
+            win();
+        }
     }
-    ending();
 }
