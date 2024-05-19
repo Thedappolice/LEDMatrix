@@ -30,7 +30,7 @@ int End[8][8] = {
     {1, 1, 1, 1, 0, 1, 0, 1},
     {0, 0, 0, 0, 0, 0, 0, 0}};
 
-int Win[8][8] = {
+int Win1[8][8] = {
     {0, 0, 0, 1, 0, 0, 0, 0},
     {0, 0, 0, 1, 0, 0, 0, 0},
     {0, 0, 1, 1, 1, 0, 0, 0},
@@ -39,6 +39,15 @@ int Win[8][8] = {
     {0, 0, 1, 1, 1, 0, 0, 0},
     {0, 1, 1, 0, 1, 1, 0, 0},
     {1, 1, 0, 0, 0, 1, 1, 0}};
+int Win2[8][8] = {
+    {0, 0, 0, 0, 1, 0, 0, 0},
+    {0, 0, 0, 0, 1, 0, 0, 0},
+    {0, 0, 0, 1, 1, 1, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 1},
+    {0, 0, 1, 1, 1, 1, 1, 0},
+    {0, 0, 0, 1, 1, 1, 0, 0},
+    {0, 0, 1, 1, 0, 1, 1, 0},
+    {0, 1, 1, 0, 0, 0, 1, 1}};
 
 int N1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
@@ -137,7 +146,7 @@ void checkdirection()
             break;
         }
 
-        if (JYSTCK != oppdirection && JYSTCK != direction)
+        if (JYSTCK != oppdirection)
         {
             direction = JYSTCK;
             lastDebounceTime = millis(); // Update debounce time
@@ -176,14 +185,26 @@ void generateFood()
         {
             end = true;
             win = true;
+            return;
         }
     }
 }
 
 void refreshMem()
 {
+    // Clear previous body positions
+    for (int i = 0; i < 64; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            body[i][j] = 0;
+        }
+    }
+
     bool eat = false;
     int count = 0;
+
+    // Update body positions and check if snake eats
     for (int c = 0; c < length; c++)
     {
         for (int i = 0; i < 8; i++)
@@ -198,17 +219,22 @@ void refreshMem()
                         head[1] = j;
                     }
                     memory[i][j][2]++;
+                    body[count][0] = i;
+                    body[count][1] = j;
+                    count++;
                 }
             }
         }
     }
 
+    // Update head position based on direction
     switch (direction)
     {
     case 'u':
         if (head[0] - 1 < 0)
         {
             end = true;
+            return;
         }
         else
         {
@@ -219,6 +245,7 @@ void refreshMem()
         if (head[0] + 1 > 7)
         {
             end = true;
+            return;
         }
         else
         {
@@ -229,6 +256,7 @@ void refreshMem()
         if (head[1] - 1 < 0)
         {
             end = true;
+            return;
         }
         else
         {
@@ -239,6 +267,7 @@ void refreshMem()
         if (head[1] + 1 > 7)
         {
             end = true;
+            return;
         }
         else
         {
@@ -247,24 +276,27 @@ void refreshMem()
         break;
     }
 
+    // Check if the snake hits itself
+    for (int i = 0; i < length; i++)
+    {
+        if (body[i][0] == head[0] && body[i][1] == head[1])
+        {
+            end = true;
+            return;
+        }
+    }
+
+    // Check if the snake eats the food
     if (memory[head[0]][head[1]][2] == -1)
     {
         eat = true;
     }
     memory[head[0]][head[1]][2] = 1;
 
+    // If the snake didn't eat, dim the last LED to retain length
     if (!eat)
     {
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                if (memory[i][j][2] == length)
-                {
-                    memory[i][j][2] = 0;
-                }
-            }
-        }
+        memory[body[0][0]][body[0][1]][2] = 0;
     }
     else
     {
@@ -320,8 +352,13 @@ void ending()
     }
     else
     {
-        displaywithtime(Win, 10000);
+        for (int i = 0; i < 5; i++)
+        {
+            displaywithtime(Win1, 500);
+            displaywithtime(Win2, 500);
+        }
     }
+    exit(0);
 };
 
 void setup()
@@ -330,7 +367,6 @@ void setup()
     // Initial snake head position at the center or a specific starting point
     head[0] = 4;
     head[1] = 4;
-    memory[head[0]][head[1]][2] = 1; // Mark the initial head position
 
     MemtoDisplay();
     displaywithtime(N3); // Countdown
@@ -347,14 +383,14 @@ void loop()
 {
     unsigned long currentMillis = millis();
     static unsigned long previousMillis = 0;
-    unsigned long interval = 100; // Refresh interval in milliseconds
+    unsigned long interval = 1000; // Refresh interval in milliseconds
 
     if (currentMillis - previousMillis >= interval)
     {
         previousMillis = currentMillis;
         if (!end)
         {
-            generateFood();
+            // generateFood();
             checkdirection();
             refreshMem();
             MemtoDisplay();
