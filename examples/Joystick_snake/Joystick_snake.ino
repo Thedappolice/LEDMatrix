@@ -157,6 +157,7 @@ void generateFood()
 
 void refreshMem()
 {
+    bool eat = false;
     int count = 0;
     for (int c = 0; c < length; c++)
     {
@@ -171,7 +172,7 @@ void refreshMem()
                         head[0] = i;
                         head[1] = j;
                     }
-                    memory[i][j][2] = memory[i][j][2]++;
+                    memory[i][j][2]++;
                 }
             }
         }
@@ -196,7 +197,7 @@ void refreshMem()
         }
         else
         {
-            head[0] = head[0] - 1;
+            head[0] = head[0] + 1;
         }
         break;
     case 'l':
@@ -216,19 +217,18 @@ void refreshMem()
         }
         else
         {
-            head[1] = head[1] - 1
+            head[1] = head[1] + 1;
         }
         break;
     }
 
-    bool eat;
     if (memory[head[0]][head[1]][2] == -1)
     {
         eat = true;
     }
     memory[head[0]][head[1]][2] = 1;
 
-    if (eat == false)
+    if (!eat)
     {
         for (int i = 0; i < 8; i++)
         {
@@ -266,31 +266,31 @@ void MemtoDisplay()
     }
 };
 
-ending()
+void ending()
 {
     for (int i = 0; i < 10; i++)
     {
-        M.Symbol(display);
+        LM.Symbol(display);
         delay(100);
     }
 
-    for (int c = length; c < 0; c--)
+    for (int c = length; c > 0; c--)
     {
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
-                if (memory[i][j][2] = c + 1)
+                if (memory[i][j][2] == c)
                 {
                     memory[i][j][2] = 0;
-                    MemtoDispay();
+                    MemtoDisplay();
                     displaywithtime(display, 250);
                 }
             }
         }
     }
     displaywithtime(End, 10000);
-};
+}
 
 void setup()
 {
@@ -300,11 +300,11 @@ void setup()
     displaywithtime(N2);
     displaywithtime(N1);
     for (int i = 0; i < 20; i++)
-    { // blink the ball position, showing the starting position L
+    { // blink the ball position, showing the starting position
         LM.Symbol(display);
         delay(100);
     }
-};
+}
 
 void loop()
 {
@@ -317,5 +317,4 @@ void loop()
         displaywithtime(display);
     }
     ending();
-    exit(0);
 }
