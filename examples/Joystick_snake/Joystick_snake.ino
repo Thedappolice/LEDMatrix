@@ -190,7 +190,7 @@ void generateFood()
     }
 }
 
-void crefreshMem()
+void refreshMem()
 {
     int prelength = length;
     bool eat = false;
@@ -269,7 +269,7 @@ void crefreshMem()
     body[0][0] = head[0];
     body[0][1] = head[1];
 
-    for (int i = 0; i < 8)
+    for (int i = 0; i < 8; i++)
     {
         for (int j = 0; j < 8; j++)
         {
@@ -370,7 +370,7 @@ void loop()
 {
     unsigned long currentMillis = millis();
     static unsigned long previousMillis = 0;
-    unsigned long interval = 1000; // Refresh interval in milliseconds
+    unsigned long interval = 500; // Refresh interval in milliseconds
 
     if (currentMillis - previousMillis >= interval)
     {
