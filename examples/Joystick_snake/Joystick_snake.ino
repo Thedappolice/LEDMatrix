@@ -301,7 +301,7 @@ void setup()
     displaywithtime(N1);
     for (int i = 0; i < 20; i++)
     { // blink the ball position, showing the starting position L
-        M.Symbol(display);
+        LM.Symbol(display);
         delay(100);
     }
 };
