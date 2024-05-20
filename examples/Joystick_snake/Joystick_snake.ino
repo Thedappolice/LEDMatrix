@@ -17,8 +17,6 @@ int head[2] = {4, 4};
 bool foodExists = false;
 int Mayfood[64][2] = {{0}}; // Assuming a maximum of 64 possible food locations
 
-unsigned long timeupdate;
-
 // End and number matrices
 int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -97,7 +95,7 @@ bool win = false;
 
 void displaywithtime(int Matrix[][8], int time = 1000)
 {
-    timeupdate = millis();
+    unsigned long timeupdate = millis();
     while (millis() - timeupdate < time)
     {
         LM.Symbol(Matrix);
@@ -158,6 +156,12 @@ void generateFood()
 {
     if (!foodExists)
     {
+        for (int i = 0; i < 64; i++)
+        {
+            Mayfood[i][0] = 0;
+            Mayfood[i][1] = 0;
+        }
+
         int count = 0;
 
         // Iterate through the board to find empty spots
@@ -173,11 +177,10 @@ void generateFood()
                 }
             }
         }
-
         // If there are empty spots, place food
         if (count > 0)
         {
-            int randIndex = (int)random(0, count);
+            int randIndex = random(0, count);
             memory[Mayfood[randIndex][0]][Mayfood[randIndex][1]][2] = -1;
             foodExists = true;
         }
@@ -348,6 +351,11 @@ void ending()
 
 void setup()
 {
+    displaywithtime(N3); // Countdown
+    displaywithtime(N2);
+    displaywithtime(N1);
+
+    randomSeed(analogRead(A4));
     body[0][0] = 4;
     body[0][1] = 4;
     body[1][0] = 5;
@@ -356,9 +364,7 @@ void setup()
     body[2][1] = 4;
 
     MemtoDisplay();
-    displaywithtime(N3); // Countdown
-    displaywithtime(N2);
-    displaywithtime(N1);
+
     for (int i = 0; i < 20; i++)
     {
         LM.Symbol(display);
@@ -377,7 +383,7 @@ void loop()
         previousMillis = currentMillis;
         if (!end)
         {
-            // generateFood();
+            generateFood();
             checkdirection();
             refreshMem();
             MemtoDisplay();
