@@ -340,7 +340,7 @@ void ending()
     {
         for (int i = 0; i < 5; i++)
         {
-            displaywithtime(Win1, 500);
+            displaywithtime(Win, 500);
         }
     }
     exit(0);
