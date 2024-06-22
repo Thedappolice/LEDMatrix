@@ -1,23 +1,69 @@
 #define rotate 1
 #define left 2
 #define right 3
-#defien down 4
+#define down 4
 
-int memory[16][8]= {{0}};
-int topLM[8][8][]= {{0}};
+int memory[16][8] = {{0}};
+int center[15][7] = {{0}};
+int topLM[8][8][] = {{0}};
 int botLM[8][8][] = {{0}};
 
-int shapes[7][4][2]= {{{-1, 1},{-1,-1},{}}}
+String shapes[7]={'L', 'RL', 'S', 'RS','T', 'C', 'B'};
 
 bool gotShape = false;
 int shape[4][2] ={{0}}; 
+int orientation = 1;
 
 void genShape()
 {
 if(gotShape!)
 {
-shape = shapes[random(1, 6)]
+shape = shapes[random(0, 6)];
 }
+};
+
+void checkBound(command)
+{
+if (command == 'up')
+{
+
+}
+else
+{
+if(command == 'right')
+{
+
+}
+}
+
+
+};
+
+void checkInput()
+{
+bool leftstate;
+bool rightstate;
+bool downstate;
+bool rotatestate;
+
+
+if(rotatestate)
+{
+command= 'rotate';
+}
+else if(downstate)
+{
+command= 'down';
+}
+else if(leftstate)
+{
+command= 'left';
+}
+else if(rightstate)
+{
+command= 'right';
+}
+
 };
 
 
