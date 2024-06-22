@@ -10,6 +10,8 @@ int botLM[8][8][] = {{0}};
 
 String shapes[7]={'L', 'RL', 'S', 'RS','T', 'C', 'B'};
 
+char command;
+
 bool gotShape = false;
 int shape[4][2] ={{0}}; 
 int orientation = 1;
@@ -41,29 +43,27 @@ if(command == 'right')
 
 void checkInput()
 {
-bool leftstate;
-bool rightstate;
-bool downstate;
-bool rotatestate;
-
+bool leftstate = digtalRead(left) == HIGH
+bool rightstate = digtalRead(right) == HIGH;
+bool downstate = digtalRead(down) == HIGH;
+bool rotatestate = digtalRead(rotate) == HIGH;
 
 if(rotatestate)
 {
-command= 'rotate';
+command= 'r';
 }
 else if(downstate)
 {
-command= 'down';
+command= 'd';
 }
 else if(leftstate)
 {
-command= 'left';
+command= 'l';
 }
 else if(rightstate)
 {
-command= 'right';
+command= 'r';
 }
-
 };
 
 
