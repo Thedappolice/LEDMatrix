@@ -1,0 +1,32 @@
+#define rotate 1
+#define left 2
+#define right 3
+#defien down 4
+
+int memory[16][8]= {{0}};
+int topLM[8][8][]= {{0}};
+int botLM[8][8][] = {{0}};
+
+int shapes[7][4][2]= {{{-1, 1},{-1,-1},{}}}
+
+bool gotShape = false;
+int shape[4][2] ={{0}}; 
+
+void genShape()
+{
+if(gotShape!)
+{
+shape = shapes[random(1, 6)]
+}
+};
+
+
+void setup()
+{
+
+}
+
+void loop()
+{
+
+}
