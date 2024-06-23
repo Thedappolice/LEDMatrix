@@ -26,7 +26,7 @@ LEDMatrix LM(posPin, 8, negPin, 8); // Initialization
 // variables for time control
 bool balldelay = false;
 unsigned long timeupdate;
-int balldelaytime = 1000;
+unsigned long balldelaytime = 1000;
 
 // varibales for ball control
 int ballX = random(3, 5);
@@ -273,7 +273,7 @@ void End(int result, bool simple = false) // ending the game.
   {
     for (int i = 0; i < 3; i++)
     {
-      LM.Symbol(P, 1000);
+      LM.Symbol(P);
       if (result == 1)
       {
         LM.Symbol(N1);
