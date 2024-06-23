@@ -18,7 +18,7 @@ public:
 
     void Test(); // check all possible LED
 
-    void Symbol(int UserMatrix[][8]); // display custom symbol
+    void Symbol(int UserMatrix[][8], int delayTime); // display custom symbol
 
 private:
     int Col;
@@ -27,7 +27,7 @@ private:
     int *Pins;
     int NumPins;
 
-    void Clear(int n_Row = -1); // clears the display, delayable
+    void Clear(int n_Row = -1, int delay = 2); // clears the display, delayable
 
     int limitingCols(int xCol); // limits x inputs
     int limitingRows(int yRow); // limits y inputs

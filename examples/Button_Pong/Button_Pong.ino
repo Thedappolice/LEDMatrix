@@ -115,16 +115,6 @@ int N3[8][8] = {
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 0, 1, 1, 1, 1, 0, 0}};
 
-// function to display given symbol for set time
-void displaywithtime(int Matrix[][8], int time = 1000)
-{
-  timeupdate = millis();
-  while (millis() - timeupdate < time)
-  {
-    LM.Symbol(Matrix);
-  }
-};
-
 int checkstate(int value) // analog input to digital input
 {
   if (value > 1000)
@@ -283,18 +273,18 @@ void End(int result, bool simple = false) // ending the game.
   {
     for (int i = 0; i < 3; i++)
     {
-      displaywithtime(P);
+      LM.Symbol(P, 1000);
       if (result == 1)
       {
-        displaywithtime(N1);
+        LM.Symbol(N1);
       }
       else if (result == 2)
       {
-        displaywithtime(N2);
+        LM.Symbol(N2);
       }
-      displaywithtime(W);
-      displaywithtime(I);
-      displaywithtime(N);
+      LM.Symbol(W);
+      LM.Symbol(I);
+      LM.Symbol(N);
     }
   }
   else // displays simple number flash ending
@@ -303,11 +293,11 @@ void End(int result, bool simple = false) // ending the game.
     {
       if (result == 1)
       {
-        displaywithtime(N1, 300);
+        LM.Symbol(N1, 300);
       }
       else if (result == 2)
       {
-        displaywithtime(N2, 300);
+        LM.Symbol(N2, 300);
       }
       delay(300);
     }
@@ -395,9 +385,9 @@ void ballchange() // ball changes
 
 void setup()
 {
-  displaywithtime(N3); // countdown
-  displaywithtime(N2);
-  displaywithtime(N1);
+  LM.Symbol(N3, 1000);
+  LM.Symbol(N2, 1000);
+  LM.Symbol(N1, 1000);
   for (int i = 0; i < 20; i++) // blink the ball position, showing the starting position
   {
     LM.turnOn(ballY, ballX);
