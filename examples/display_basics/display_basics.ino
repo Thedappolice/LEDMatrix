@@ -26,10 +26,14 @@ void setup()
 
 void loop()
 {
-  LM.turnOn(2, 4); // turn on x-th Column's, y-th Row's Led of Matrix
+  LM.turnOn(2, 4); // turn on x-th Column's, y-th Row's Led of Matrix  
+  //LM.turnOn(2, 4, 1000); // turn on x-th Column's, y-th Row's Led of Matrix, for n milliseconds  
 
   LM.OnCol(3); // turn on entire n-th Column
+  // LM.OnCol(3, 1000); // turn on entire n-th Column, for n milliseconds
+
   LM.OnRow(6); // turn on entire n-th Row
+  //LM.OnRow(6); // turn on entire n-th Row, for n milliseconds
 
   LM.customCol(Example_Col, 1); // turn on 1st column with given array order
   /*
@@ -37,23 +41,17 @@ void loop()
     array_name,
     n-th_column,
     shift_left/right(optional)
-  )
-  Eg : LM.customCol(Example_Col, 1, 1)
-                              //3rd argument is optional, can be positive/negative
-                              //shifts the array by +/- n to left/right
-  */
+    display_duration(optional, defaulted to 1000, in milliseconds unit)
+  )*/
 
   LM.customRow(Example_Row, 2); // turn on 2nd row with given array order
-  /*
+ /*
     Object.customRow(
     array_name,
-    n-th_row,
+    n-th_column,
     shift_left/right(optional)
-  )
-  Eg : LM.customRow(Example_Row, 4, 6)
-                              //3rd argument is optional, can be positive/negative
-                              //shifts the array by +/- n to left/right
-  */
+    display_duration(optional, defaulted to 1000, in milliseconds unit)
+  )*/
 
   // LM.Symbol(2D array), read the Custom_char example
 }
