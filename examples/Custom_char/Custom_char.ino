@@ -91,9 +91,10 @@ void setup()
 void loop()
 {
   LM.Symbol(Z, 500); // Object_name.Symbol(name_of_character, duration ↓);
-  LM.Symbol(E, 500);                                        //(in millisseconds, optional, defaulted to 1000)
+  LM.Symbol(E, 500); //(in millisseconds, optional, defaulted to 1000)
   LM.Symbol(N, 500);
   LM.Symbol(I, 500);
   LM.Symbol(U, 500);
   LM.Symbol(S, 500);
   LM.Symbol(End);
+}
