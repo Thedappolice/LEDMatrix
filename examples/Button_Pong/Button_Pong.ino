@@ -1,34 +1,27 @@
 #include <LEDMatrix.h>
 
-// (Row/Column) pins must be put in ascending order, follow your datasheet.
+// Pin configurations for LED Matrix
 int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
-// array to show specific pattern called "wall"
+// Wall pattern array
 int wall[] = {0, 0, 1, 1, 1, 0, 0, 0};
 
-LEDMatrix LM(posPin, 8, negPin, 8); // Initialization
-/*
-  Class name, Object_name(
-  positive_pin_array[],
-  size of positive_pin_array[],
-  negative_pin_array[],
-  size of positive_pin_array[]
-  )
-*/
+// LED Matrix object initialization
+LEDMatrix LM(posPin, 8, negPin, 8);
 
-// defining terms resembling pins to increase readability
+// Definitions for pin-like variables
 #define P1left A4
 #define P1right A5
 #define P2left A7
 #define P2right A6
 
-// variables for time control
+// Time control variables
 bool balldelay = false;
 unsigned long timeupdate;
 unsigned long balldelaytime = 1000;
 
-// varibales for ball control
+// Ball control variables
 int ballX = random(3, 5);
 int ballY = random(3, 5);
 int ballXdirection = 1;
@@ -36,7 +29,7 @@ int ballYdirection = 1;
 int check;
 int mem;
 
-// variables for input detection
+// Input detection variables
 int P1leftstat;
 int P1rightstat;
 int P2leftstat;
@@ -44,13 +37,15 @@ int P2rightstat;
 int P1change = 0;
 int P2change = 0;
 
-// variables to alter array position, refer example 'display_basics.ino'
+// Variables for array position alteration
 int P1shift = 0;
 int P2shift = 0;
 
-// allocate space for game assets
+// Game assets allocation
 int memory[8][8] = {{0}};
-bool simplicity = false; // change to true for a simplier ending display
+bool simplicity = false; // Set to true for simpler ending display
+
+// Game patterns for ending display
 int W[8][8] = {
     {1, 0, 0, 0, 0, 0, 0, 1},
     {1, 0, 0, 0, 0, 0, 0, 1},
@@ -115,7 +110,8 @@ int N3[8][8] = {
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 0, 1, 1, 1, 1, 0, 0}};
 
-int checkstate(int value) // analog input to digital input
+// Function to convert analog input to digital input
+int checkstate(int value)
 {
   if (value > 1000)
   {
@@ -125,9 +121,10 @@ int checkstate(int value) // analog input to digital input
   {
     return 0;
   }
-};
+}
 
-int limitingshift(int value, bool change) // limiting the input of players
+// Function to limit player input
+int limitingshift(int value, bool change)
 {
   if (value < 3 && change == true)
   {
@@ -138,21 +135,23 @@ int limitingshift(int value, bool change) // limiting the input of players
     mem = value - 1;
   }
   return mem;
-};
+}
 
-void fasterball() // increase ball speed
+// Function to increase ball speed
+void fasterball()
 {
   balldelaytime = ceil(500 - millis() / 150);
 }
 
-void checkbutton() // checking for button inputs
+// Function to check button inputs
+void checkbutton()
 {
-  P1leftstat = checkstate(analogRead(P1left)); // reads
+  P1leftstat = checkstate(analogRead(P1left));
   P1rightstat = checkstate(analogRead(P1right));
   P2leftstat = checkstate(analogRead(P2left));
   P2rightstat = checkstate(analogRead(P2right));
 
-  if (P1change == 0) // only change if the user has let go of the button
+  if (P1change == 0)
   {
     if (P1leftstat == 1 || P1rightstat == 1)
     {
@@ -169,12 +168,13 @@ void checkbutton() // checking for button inputs
   }
   else
   {
-    if (P1leftstat == 0 && P1rightstat == 0) // when let go, renable the input
+    if (P1leftstat == 0 && P1rightstat == 0)
     {
       P1change = 0;
     }
   }
-  if (P2change == 0) // same as P1
+
+  if (P2change == 0)
   {
     if (P2leftstat == 1 || P2rightstat == 1)
     {
@@ -196,26 +196,31 @@ void checkbutton() // checking for button inputs
       P2change = 0;
     }
   }
-};
+}
 
-void display() // displaying on the matrix
+// Function to display on the LED Matrix
+void display()
 {
   LM.customRow(wall, 0, P1shift);
   LM.customRow(wall, 7, P2shift);
   LM.turnOn(ballY, ballX);
-};
+}
 
-void updateMem(bool normal = true) // updating the game memory
+// Function to update game memory
+void updateMem(bool normal = true)
 {
-  for (int i = 0; i < 8; i++) // clear the momory
+  // Clear memory
+  for (int i = 0; i < 8; i++)
   {
     for (int j = 0; j < 8; j++)
     {
       memory[j][i] = 0;
     }
   }
-  if (normal) // update the memory if needed
+
+  if (normal)
   {
+    // Update memory based on player shifts and ball position
     for (int j = 0; j < 8; j++)
     {
       if (2 + P1shift == j || 3 + P1shift == j || 4 + P1shift == j)
@@ -223,6 +228,7 @@ void updateMem(bool normal = true) // updating the game memory
         memory[j][0] = 1;
       }
     }
+
     for (int j = 0; j < 8; j++)
     {
       if (2 + P2shift == j || 3 + P2shift == j || 4 + P2shift == j)
@@ -230,13 +236,16 @@ void updateMem(bool normal = true) // updating the game memory
         memory[j][7] = 1;
       }
     }
-    memory[ballY][ballX] = 1;
-  } // eitherwise just leave it blank to save space
-};
 
-void End(int result, bool simple = false) // ending the game.
+    memory[ballY][ballX] = 1;
+  }
+}
+
+// Function to end the game
+void End(int result, bool simple = false)
 {
-  if (ballXdirection == 1) // final changes
+  // Move the ball to final position
+  if (ballXdirection == 1)
   {
     ballX++;
   }
@@ -244,6 +253,7 @@ void End(int result, bool simple = false) // ending the game.
   {
     ballX--;
   }
+
   if (ballY == 0 || ballY == 7)
   {
     if (ballYdirection == 1)
@@ -255,6 +265,7 @@ void End(int result, bool simple = false) // ending the game.
       ballYdirection = 1;
     }
   }
+
   if (ballYdirection == 1)
   {
     ballY++;
@@ -263,13 +274,18 @@ void End(int result, bool simple = false) // ending the game.
   {
     ballY--;
   }
-  updateMem(false);            // clear memory
-  for (int i = 0; i < 20; i++) // blink the ball position, showing the losing side
+
+  updateMem(false); // Clear memory
+
+  // Blink ball position for losing side indication
+  for (int i = 0; i < 20; i++)
   {
     LM.turnOn(ballY, ballX);
     delay(100);
   }
-  if (!simple) // displays symbol ending
+
+  // Display ending symbols or numbers based on 'simple' flag
+  if (!simple)
   {
     for (int i = 0; i < 3; i++)
     {
@@ -287,7 +303,7 @@ void End(int result, bool simple = false) // ending the game.
       LM.Symbol(N);
     }
   }
-  else // displays simple number flash ending
+  else
   {
     for (int i = 0; i < 30; i++)
     {
@@ -302,16 +318,19 @@ void End(int result, bool simple = false) // ending the game.
       delay(300);
     }
   }
-  exit(1); // exit code, to restart, hit the reset button
-};
 
-void ballchange() // ball changes
+  exit(1); // Exit code; reset to restart
+}
+
+// Function to change ball position
+void ballchange()
 {
-  if (balldelay) // if the previous time was recorded
+  if (balldelay)
   {
-    if (millis() - timeupdate > balldelaytime) // if the difference in time is sufficient
+    if (millis() - timeupdate > balldelaytime)
     {
-      if (ballX == 1 || ballX == 6) // if on player border
+      // Check if ball reaches player edge
+      if (ballX == 1 || ballX == 6)
       {
         if (ballX == 1)
         {
@@ -321,19 +340,22 @@ void ballchange() // ball changes
         {
           check = 1;
         }
-        if (memory[ballY][ballX + check] != 1) // if player edge doesnt block their end.
+
+        // Check if player edge blocks the path
+        if (memory[ballY][ballX + check] != 1)
         {
           if (check == -1)
           {
-            End(2, simplicity); // calls End()
+            End(2, simplicity);
           }
           else if (check == 1)
           {
-            End(1, simplicity); // calls End()
+            End(1, simplicity);
           }
         }
-        else // switch direction on edge
+        else
         {
+          // Change direction on player edge
           if (ballXdirection == 1)
           {
             ballXdirection = -1;
@@ -344,7 +366,9 @@ void ballchange() // ball changes
           }
         }
       }
-      if (ballXdirection == 1) // change ballX +/- 1
+
+      // Move ball
+      if (ballXdirection == 1)
       {
         ballX++;
       }
@@ -353,7 +377,8 @@ void ballchange() // ball changes
         ballX--;
       }
 
-      if (ballY == 0 || ballY == 7) // if on edge change direction
+      // Change direction if ball reaches top or bottom
+      if (ballY == 0 || ballY == 7)
       {
         if (ballYdirection == 1)
         {
@@ -364,7 +389,8 @@ void ballchange() // ball changes
           ballYdirection = 1;
         }
       }
-      if (ballYdirection == 1) // change ballY +/- 1
+
+      if (ballYdirection == 1)
       {
         ballY++;
       }
@@ -376,30 +402,36 @@ void ballchange() // ball changes
       balldelay = false;
     }
   }
-  else // record the prvious time
+  else
   {
+    // Record previous time
     timeupdate = millis();
     balldelay = true;
   }
-};
+}
 
+// Setup function
 void setup()
 {
+  // Initial symbols on LED Matrix
   LM.Symbol(N3, 1000);
   LM.Symbol(N2, 1000);
   LM.Symbol(N1, 1000);
-  for (int i = 0; i < 20; i++) // blink the ball position, showing the starting position
+
+  // Blink ball position to indicate starting position
+  for (int i = 0; i < 20; i++)
   {
     LM.turnOn(ballY, ballX);
     delay(100);
   }
-};
+}
 
-void loop() // calling functions in sequence
+// Loop function to call other functions sequentially
+void loop()
 {
   updateMem();
   display();
   checkbutton();
   ballchange();
   fasterball();
-};
+}
