@@ -29,13 +29,13 @@ void checkBound(char command)
 {
     if (command == 'u')
     {
+
     }
     else if (command == 'r')
     {
+        
     }
-}
-}
-;
+};
 
 void checkInput()
 {

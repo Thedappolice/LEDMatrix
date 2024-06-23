@@ -6,8 +6,6 @@ int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
 LEDMatrix LM(posPin, 8, negPin, 8);
 
-unsigned long currentMillis;
-unsigned long previousMillis = 0;
 unsigned long interval = 500; // Refresh interval in milliseconds
 
 int length = 3;
@@ -89,21 +87,9 @@ char direction = 'u';
 bool end = false;
 bool win = false;
 
-void displaywithtime(int Matrix[][8], unsigned long time = 1000)
-{
-    unsigned long timeupdate = millis();
-    while (millis() - timeupdate < time)
-    {
-        LM.Symbol(Matrix);
-    }
-}
-
 void checkdirection()
 {
-    static unsigned long lastDebounceTime = 0;
-    unsigned long debounceDelay = 50; // 50 ms debounce delay
-    char JYSTCK = direction;          // Default to current direction
-
+    char JYSTCK = direction; // Default to current direction
     if (millis() - lastDebounceTime > debounceDelay)
     {
         if (analogRead(A7) > 768)
@@ -147,7 +133,6 @@ void checkdirection()
         if (JYSTCK != oppdirection)
         {
             direction = JYSTCK;
-            lastDebounceTime = millis(); // Update debounce time
         }
     }
 }
@@ -327,20 +312,20 @@ void ending()
                 {
                     memory[i][j][2] = 0;
                     MemtoDisplay();
-                    displaywithtime(display, 250);
+                    LM.Symbol(display, 250);
                 }
             }
         }
     }
     if (!win)
     {
-        displaywithtime(End, 10000);
+        LM.Symbol(End, 10000);
     }
     else
     {
         for (int i = 0; i < 5; i++)
         {
-            displaywithtime(Win, 500);
+            LM.Symbol(Win, 500);
         }
     }
     exit(0);
@@ -348,9 +333,9 @@ void ending()
 
 void setup()
 {
-    displaywithtime(N3); // Countdown
-    displaywithtime(N2);
-    displaywithtime(N1);
+    LM.Symbol(N3); // Countdown
+    LM.Symbol(N2);
+    LM.Symbol(N1);
 
     randomSeed(analogRead(A4));
 
@@ -365,22 +350,16 @@ void setup()
 
 void loop()
 {
-    currentMillis = millis();
-
-    if (currentMillis - previousMillis >= interval)
+    if (!end)
     {
-        previousMillis = currentMillis;
-        if (!end)
-        {
-            generateFood();
-            checkdirection();
-            refreshMem();
-            MemtoDisplay();
-            displaywithtime(display, interval);
-        }
-        else
-        {
-            ending();
-        }
+        generateFood();
+        checkdirection();
+        refreshMem();
+        MemtoDisplay();
+        LM.Symbol(display, interval);
+    }
+    else
+    {
+        ending();
     }
 }
