@@ -22,11 +22,9 @@ char command;
 
 bool gotShape = false;
 int currentShape[4][2] = {{0}};
-int orientation = 1;
 
 void genShape()
 {
-
     if (!gotShape)
     {
         int(*selectedShape)[4][2] = shapes[random(0, 7)];
@@ -38,10 +36,13 @@ void genShape()
     }
 };
 
-void checkBound(char command)
+void check_and_alter_shape()
 {
-    if (command == 'u')
-    {
+    if (command == 'o')
+    {   
+        int prev[3][2];
+        currentShape[i][0]= currentShape[i][0] * -1;
+
     }
     else if (command == 'r')
     {
@@ -57,7 +58,7 @@ void checkInput()
 
     if (rotatestate)
     {
-        command = 'r';
+        command = 'o';
     }
     else if (downstate)
     {
@@ -73,23 +74,7 @@ void checkInput()
     }
 };
 
-MemtoDisplay()
-{
-for(int i = 0; i <16 ; i++)
-{
-for(int j = 0; j < 8; j++)
-{
-if(i<7)
-{
-topLM[i][j]=memory[2*i][2*j];
-}
-else
-{
-botLM[i][j]=memory [2*i][2*j];
-}
-}
-}
-};
+
 
 void setup()
 {
