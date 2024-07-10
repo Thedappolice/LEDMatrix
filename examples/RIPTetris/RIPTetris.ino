@@ -73,6 +73,24 @@ void checkInput()
     }
 };
 
+MemtoDisplay()
+{
+for(int i = 0; i <16 ; i++)
+{
+for(int j = 0; j < 8; j++)
+{
+if(i<7)
+{
+topLM[i][j]=memory[2*i][2*j];
+}
+else
+{
+botLM[i][j]=memory [2*i][2*j];
+}
+}
+}
+};
+
 void setup()
 {
     randomSeed(analogRead(A4));
