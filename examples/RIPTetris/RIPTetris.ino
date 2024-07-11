@@ -17,7 +17,7 @@ int T[4][2] = {{3, 15}, {1, 0}, {-1, 0}, {0, -1}};
 int O[4][2] = {{3, 15}, {-1, 0}, {1, 0}, {-1, -1}};
 int I[4][2] = {{3, 15}, {0, 1}, {0, -1}, {0, -2}};
 
-char command;
+char command = '\0';
 
 bool gotShape = false;
 int currentShape[4][2] = {{0}};
@@ -65,6 +65,7 @@ void checkInput() {
         command = 'l';
     } else if (rightState) {
         command = 'r';
+    }else {command = '\0'
     }
 }
 
