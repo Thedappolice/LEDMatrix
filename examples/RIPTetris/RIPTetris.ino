@@ -3,10 +3,11 @@
 #define right 3
 #define down 4
 
-int memory[16][8] = {{0}};
+int displayMemory[16][8] = {{0}};
+int stableMemory[16][8] = {{0}};
+
 int topLM[8][8];
 int botLM[8][8];
-int height = 0;
 
 int (*shapes[7])[4][2] = {&L, &J, &S, &Z, &T, &O, &I};
 
@@ -93,41 +94,48 @@ void checkAndAlter()
 
 void scanGrid()
 {
-    int fullRow[];
-    int count = 0;
-    int arrayCount = 0;
+    int fullRow[4];      // Array to store the indices of full rows
+    int arrayCount = -1; // Counter for full rows
+
     for (int i = 0; i < 16; i++)
+    {
+        if (stableMemory[i][0] != 0) // Check if the first cell of the row is not empty
+        {
+            bool isFull = true; // Assume the row is full initially
+
+            for (int j = 1; j < 8; j++) // Check the rest of the row
+            {
+                if (stableMemory[i][j] == 0) // If any cell is empty
+                {
+                    isFull = false; // The row is not full
+                    break;          // Exit the loop early
+                }
+            }
+
+            if (isFull) // If the row is full
+            {
+                arrayCount++;
+                fullRow[arrayCount] = i; // Store the row index
+            }
+        }
+    }
+
+    for (int i = 0; i < arrayCount + 1 ; i++)
     {
         for (int j = 0; j < 8; j++)
         {
-            if (memory[i][j] == 0)
-            {
-                count++;
-            }
-            if (count == 8)
-            {
-                fullRow[arrayCount] = i;
-                arrayCount++;
-            }
+            stableMemory[i][j] = 0; // Clear the full row
+            clearRow();
         }
     }
-}
 
-// void scanGrid() {
-int count = 0;
-bool row[15] = {0};
-int c = 0;
-for (int i = 0; i < height; i++)
+    for ()
+};
+
+void clearRow()
 {
-    for (int j = 0; j < 8; j++)
-    {
-        if (memory[i][j] == 1)
-        {
-            // Placeholder for functionality
-        }
-    }
-}
-}
+LM.
+};
 
 void MemtoDisplay()
 {
