@@ -78,7 +78,7 @@ void checkInput()
     }
 }
 
-void checkAndAlter()
+void checkAndAlterShape()
 {
     if (command == 'o')
     {
@@ -104,12 +104,12 @@ void checkAndAlter()
     command = '\0';
 }
 
-void scanAndClear()
+void scanAndClearGrid()
 {
-    int fullRows[4];     // Array to store the indices of full rows
+    int fullRows[4];     // Array to store the indices of full rows initialized to -1
     int arrayCount = -1; // Counter for index of full rows
 
-    for (int i = 0; i < 16; i++)
+    for (int i = 16; i > 0; i--)
     {
         if (stableMemory[i][0] != 0) // Check if the first cell of the row is not empty
         {
@@ -132,43 +132,49 @@ void scanAndClear()
         }
     }
 
-    for (int i = 0; i < arrayCount + 1; i++) // repeat the amount of rows to be cleared
+    if (arrayCount != -1) // if 1st element of fullRows is altered
     {
-        for (int j = 0; j < 8; j++)
+        for (int i = 0; i < arrayCount + 1; i++) // repeat the amount of rows to be cleared
         {
-            stableMemory[fullRow[i]][j] = 0; // Clear the full row
-            if (fullRow[i] < 8)              // if index less than 8
-            {                                // top half
-                LMtop.OnRow(i);              // animation
-                LMtop.Symbol(topLM);
-            }
-            else                    // else index is more than 8
-            {                       // bottom half 
-                LMbot.OnRow(i - 8); // animation
-                LMbot.Symbol(botLM);
+            for (int j = 0; j < 8; j++)
+            {
+                stableMemory[fullRow[i]][j] = 0; // Clear the full row
+                if (fullRow[i] < 8)              // if index less than 8
+                {                                // top half
+                    LMtop.OnRow(i);              // animation
+                    LMtop.Symbol(topLM);
+                }
+                else                    // else index is more than 8
+                {                       // bottom half
+                    LMbot.OnRow(i - 8); // animation
+                    LMbot.Symbol(botLM);
+                }
             }
         }
-    }
 
-    for (int i = fullRow[0]; i < 16; i++)
-    {
-        for (int j = 0; j < 8; j++)
+        for (int i = fullRow[0]; i > 0; i--)
         {
-            stableMemory[i][j] = stableMemory[i + arrayCount + 1][j];//bring the rest of the rows downwards
+            for (int j = 0; j < 8; j++)
+            {
+                stableMemory[i][j] = stableMemory[i - (arrayCount + 1)][j]; // bring the rest of the rows downwards
+            }
         }
     }
 };
 
 void Display()
 {
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++)//clear grid
     {
         for (int j = 0; j < 8; j++)
         {
             displayMemory[i][j] = 0;
         }
     }
+
+
 };
+
 void setup()
 {
     randomSeed(analogRead(A4));
