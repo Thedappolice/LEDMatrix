@@ -2,6 +2,18 @@
 #define left 2
 #define right 3
 #define down 4
+#include <LEDMatrix.h>
+
+// Pin configurations of 1st Led matrix
+int posPintop[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int negPintop[] = {10, 11, 12, 13, A0, A1, A2, A3};
+// Pin configurations of 2nd Led matrix
+int posPinbot[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int negPinbot[] = {10, 11, 12, 13, A0, A1, A2, A3};
+
+// Initialize LEDMatrix instance
+LEDMatrix LMtop(posPintop, 8, negPintop, 8);
+LEDMatrix LMbot(posPinbot, 8, negPinbot, 8);
 
 int displayMemory[16][8] = {{0}};
 int stableMemory[16][8] = {{0}};
@@ -94,8 +106,8 @@ void checkAndAlter()
 
 void scanAndClear()
 {
-    int fullRow[4];      // Array to store the indices of full rows
-    int arrayCount = -1; // Counter for full rows
+    int fullRows[4];     // Array to store the indices of full rows
+    int arrayCount = -1; // Counter for index of full rows
 
     for (int i = 0; i < 16; i++)
     {
@@ -120,37 +132,42 @@ void scanAndClear()
         }
     }
 
-    for (int i = 0; i < arrayCount + 1 ; i++)
+    for (int i = 0; i < arrayCount + 1; i++) // repeat the amount of rows to be cleared
     {
         for (int j = 0; j < 8; j++)
         {
-            stableMemory[i][j] = 0; // Clear the full row
-            clearRow();
+            stableMemory[fullRow[i]][j] = 0; // Clear the full row
+            if (fullRow[i] < 8)              // if index less than 8
+            {                                // top half
+                LMtop.OnRow(i);              // animation
+                LMtop.Symbol(topLM);
+            }
+            else                    // else index is more than 8
+            {                       // bottom half 
+                LMbot.OnRow(i - 8); // animation
+                LMbot.Symbol(botLM);
+            }
         }
     }
 
-    for(int i = staticMemory[fullRow[0]]; i < 16; i ++ )
+    for (int i = fullRow[0]; i < 16; i++)
     {
-     for (int j = 0 ;j < 8; j++)
-         {
-staticMemory[i][j] = staticMemory[i+arrayCount+1][j];
-         }
+        for (int j = 0; j < 8; j++)
+        {
+            stableMemory[i][j] = stableMemory[i + arrayCount + 1][j];//bring the rest of the rows downwards
+        }
     }
-    
-
 };
-
 
 void Display()
 {
     for (int i = 0; i < 16; i++)
     {
         for (int j = 0; j < 8; j++)
-{
-displayMemory[i][j] = 0;
-
-}
-}
+        {
+            displayMemory[i][j] = 0;
+        }
+    }
 };
 void setup()
 {
