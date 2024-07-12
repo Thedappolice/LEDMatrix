@@ -108,6 +108,7 @@ void scanGrid()
                 if (stableMemory[i][j] == 0) // If any cell is empty
                 {
                     isFull = false; // The row is not full
+									int height = 
                     break;          // Exit the loop early
                 }
             }
@@ -129,9 +130,12 @@ void scanGrid()
         }
     }
 
-    for(int i = staticMemory[fullRow[arraycount]]; i < 16; i ++ )
+    for(int i = staticMemory[fullRow[arraycount]+1]; i < 16; i ++ )
     {
-    
+     for (int j = 0 ;j < 8; j++)
+         {
+
+         }
     }
     
 
