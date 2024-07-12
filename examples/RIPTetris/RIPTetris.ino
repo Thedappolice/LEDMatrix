@@ -129,13 +129,15 @@ void scanGrid()
         }
     }
 
-    for ()
+    for(int i = staticMemory[fullRow[arraycount]]; i < 16; i ++ )
+    {
+    
+    }
+    
+
 };
 
-void clearRow()
-{
-LM.
-};
+
 
 void MemtoDisplay()
 {
