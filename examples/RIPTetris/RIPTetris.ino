@@ -92,7 +92,7 @@ void checkAndAlter()
     command = '\0';
 }
 
-void scanGrid()
+void scanAndClear()
 {
     int fullRow[4];      // Array to store the indices of full rows
     int arrayCount = -1; // Counter for full rows
@@ -108,7 +108,6 @@ void scanGrid()
                 if (stableMemory[i][j] == 0) // If any cell is empty
                 {
                     isFull = false; // The row is not full
-									int height = 
                     break;          // Exit the loop early
                 }
             }
@@ -130,11 +129,11 @@ void scanGrid()
         }
     }
 
-    for(int i = staticMemory[fullRow[arraycount]+1]; i < 16; i ++ )
+    for(int i = staticMemory[fullRow[0]]; i < 16; i ++ )
     {
      for (int j = 0 ;j < 8; j++)
          {
-
+staticMemory[i][j] = staticMemory[i+arrayCount+1][j];
          }
     }
     
@@ -142,25 +141,17 @@ void scanGrid()
 };
 
 
-
-void MemtoDisplay()
+void Display()
 {
     for (int i = 0; i < 16; i++)
     {
         for (int j = 0; j < 8; j++)
-        {
-            if (i < 8)
-            {
-                topLM[i][j] = memory[i][j];
-            }
-            else
-            {
-                botLM[i - 8][j] = memory[i][j];
-            }
-        }
-    }
-}
+{
+displayMemory[i][j] = 0;
 
+}
+}
+};
 void setup()
 {
     randomSeed(analogRead(A4));
