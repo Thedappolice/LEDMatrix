@@ -43,7 +43,7 @@ const int I[4][2] = {{3, 0}, {0, 1}, {0, -1}, {0, -2}};
 // pointer array for the shapes
 int (*shapes[7])[4][2] = {&L, &J, &S, &Z, &T, &O, &I};
 
-// the shape in use
+// the shape in use in (x, y)
 int currentShape[4][2] = {{0}};
 
 // determinants
@@ -65,7 +65,7 @@ void genShape()
 
 void stabilizeShape()
 {
-    if (command == 2)// rotate command
+    if (command == 2) // rotate command
     {
         for (int i = 1; i < 4; i++) // flip and negate the relative coordinates of each section of shape
         {
@@ -76,7 +76,7 @@ void stabilizeShape()
     }
     int shapeCoordinates[4][2]; // in (y, x)
 
-    for (int i = 0; i < 4; i++)// get all the coordinates
+    for (int i = 0; i < 4; i++) // get all the coordinates
     {
         if (i == 0)
         {
@@ -88,6 +88,28 @@ void stabilizeShape()
             shapeCoordinates[i][1] = currentShape[0][0] + currentShape[i][0];
             shapeCoordinates[i][0] = currentShape[0][1] + currentShape[i][1];
         }
+    }
+
+    if (command == 2)
+    {
+        int error = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            if (!(shapeCoordinates[i][1] + command > -1 && shapeCoordinates[i][1] + command < width))
+            {
+                if (shapeCoordinates[i][1] > width)
+                {
+                    error = shapeCoordinates[i][1] - width
+                }
+                else
+                {
+                    error = -1 * shapeCoordinates[i][1]
+                }
+            }
+        }
+
+        currentShape[0][0] = currentShape[0][0] - error;
+        return;
     }
 
     if (command == 0) // downward command
@@ -104,8 +126,10 @@ void stabilizeShape()
                 break;            // exit the loop early
             }
         }
+        return;
     }
-    else if (command == 1 || command == -1) // left or right commands
+    
+    if (command == 1 || command == -1) // left or right commands
     {
         bool shiftable = true;      // can it be shifted
         for (int i = 0; i < 4; i++) // check each section
@@ -120,6 +144,7 @@ void stabilizeShape()
         {
             currentShape[0][0] = currentShape[0][0] + command; // shift if possible
         }
+        return;
     }
 };
 
@@ -129,12 +154,12 @@ void checkInput(int forced = false) // check and identify the input command
     bool rightState = digitalRead(RIGHT_PIN) == HIGH;
     bool downState = digitalRead(DOWN_PIN) == HIGH;
     bool rotateState = digitalRead(ROTATE_PIN) == HIGH;
-    if (forced)
+
+    if (downState || forced)
     {
-        command = -2; // default command if no input is detected
-        return;
+        command = 0;
     }
-    if (rotateState)
+    else if (rotateState)
     {
         command = 2;
     }
@@ -145,10 +170,6 @@ void checkInput(int forced = false) // check and identify the input command
     else if (rightState)
     {
         command = 1;
-    }
-    else if (downState)
-    {
-        command = 0;
     }
     else
     {
