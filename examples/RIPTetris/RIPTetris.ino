@@ -46,7 +46,7 @@ char command = '\0';
 // determinants
 bool gotShape = false;
 
-bool genShape(bool gotShape)
+void genShape(bool gotShape)
 {
     if (!gotShape)
     {
@@ -56,9 +56,55 @@ bool genShape(bool gotShape)
             currentShape[i][0] = (*selectedShape)[i][0];
             currentShape[i][1] = (*selectedShape)[i][1];
         }
-        return true;
     }
-    return false;
+}
+
+bool stabilizeShape(int direction)
+{
+    bool gotShape;
+    switch (direction)
+    {
+    case 1:
+        if (currentShape[0][0] + 1 < width)
+        {
+            currentShape[0][0]++;
+        }
+        gotShape = true;
+        break;
+    case -1:
+        if (currentShape[0][0] - 1 >= 0)
+        {
+            currentShape[0][0]--;
+        }
+        gotShape = true;
+        break;
+    case 0:
+        int nextStep[4][2] = {{0}};
+        for (int i = 0; i < 4; i++)
+        {
+            if (i == 1)
+            {
+                nextStep[i][0] = currentShape[i][0] + direction;
+                nextStep[i][1] = currentShape[i][1];
+            }
+            else
+            {
+                nextStep[i][0] = currentShape[0][0] + currentShape[i][0];
+                nextStep[i][1] = currentShape[0][1] + currentShape[i][1];
+            }
+        }
+        break;
+    case 2:
+        for (int i = 1; i < 4; i++)
+        {
+            int rmb = currentShape[i][0];
+            currentShape[i][0] = currentShape[i][1] * -1;
+            currentShape[i][1] = rmb * -1;
+        }
+        gotShape = true;
+        break;
+    }
+    return gotShape;
 }
 
 void checkInput()
@@ -90,30 +136,27 @@ void checkInput()
     }
 }
 
-void checkAndAlterShape()
+int commandAndAlterShape()
 {
+    int direction;
     if (command == 'o')
     {
-        for (int i = 1; i < 4; i++)
-        {
-            int rmb = currentShape[i][0];
-            currentShape[i][0] = currentShape[i][1] * -1;
-            currentShape[i][1] = rmb * -1;
-        }
+        direction = 2;
     }
     else if (command == 'l')
     {
-        currentShape[0][0]--;
+        direction = -1;
     }
     else if (command == 'r')
     {
-        currentShape[0][0]++;
+        direction = 1;
     }
     else if (command == 'd')
     {
-        currentShape[0][1]--;
+        direction = 0;
     }
     command = '\0';
+    return direction;
 }
 
 void scanAndClearGrid()
@@ -231,8 +274,6 @@ void showDisplay()
 void setup()
 {
     randomSeed(analogRead(A4));
-    LMtop.begin();
-    LMbot.begin();
 }
 
 void loop()
