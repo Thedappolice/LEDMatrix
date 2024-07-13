@@ -15,11 +15,15 @@ int negPinbot[] = {10, 11, 12, 13, A0, A1, A2, A3};
 LEDMatrix LMtop(posPintop, 8, negPintop, 8);
 LEDMatrix LMbot(posPinbot, 8, negPinbot, 8);
 
-int displayMemory[16][8] = {{0}};
-int stableMemory[16][8] = {{0}};
+// Shape definition
+const int height = 16;
+const int width = 8;
 
-int topLM[8][8];
-int botLM[8][8];
+int displayMemory[height][width] = {{0}};
+int stableMemory[height][width] = {{0}};
+
+int topLM[width][width];
+int botLM[width][width];
 
 int (*shapes[7])[4][2] = {&L, &J, &S, &Z, &T, &O, &I};
 
@@ -109,13 +113,13 @@ void scanAndClearGrid()
     int fullRows[4];     // Array to store the indices of full rows initialized to -1
     int arrayCount = -1; // Counter for index of full rows
 
-    for (int i = 16; i > 0; i--)
+    for (int i = height; i > 0; i--)
     {
         if (stableMemory[i][0] != 0) // Check if the first cell of the row is not empty
         {
             bool isFull = true; // Assume the row is full initially
 
-            for (int j = 1; j < 8; j++) // Check the rest of the row
+            for (int j = 1; j < width; j++) // Check the rest of the row
             {
                 if (stableMemory[i][j] == 0) // If any cell is empty
                 {
@@ -136,17 +140,17 @@ void scanAndClearGrid()
     {
         for (int i = 0; i < arrayCount + 1; i++) // repeat the amount of rows to be cleared
         {
-            for (int j = 0; j < 8; j++)
+            for (int j = 0; j < width; j++)
             {
                 stableMemory[fullRow[i]][j] = 0; // Clear the full row
-                if (fullRow[i] < 8)              // if index less than 8
+                if (fullRow[i] < width)          // if index less than width
                 {                                // top half
                     LMtop.OnRow(i);              // animation
                     LMtop.Symbol(topLM);
                 }
-                else                    // else index is more than 8
-                {                       // bottom half
-                    LMbot.OnRow(i - 8); // animation
+                else                        // else index is more than width
+                {                           // bottom half
+                    LMbot.OnRow(i - width); // animation
                     LMbot.Symbol(botLM);
                 }
             }
@@ -154,7 +158,7 @@ void scanAndClearGrid()
 
         for (int i = fullRow[0]; i > 0; i--)
         {
-            for (int j = 0; j < 8; j++)
+            for (int j = 0; j < width; j++)
             {
                 stableMemory[i][j] = stableMemory[i - (arrayCount + 1)][j]; // bring the rest of the rows downwards
             }
@@ -164,17 +168,17 @@ void scanAndClearGrid()
 
 void displayUpdate()
 {
-    for (int i = 0; i < 16; i++) // clear grid
+    for (int i = 0; i < height; i++) // clear grid
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < width; j++)
         {
             displayMemory[i][j] = 0;
         }
     }
 
-    for (int i = 0; i < 16; i++) // light all existing stable coordinates
+    for (int i = 0; i < height; i++) // light all existing stable coordinates
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < width; j++)
         {
             if (stableMemory[i][j] == 1)
             {
@@ -198,17 +202,17 @@ void displayUpdate()
 
 void showDisplay()
 {
-    for (int i = 0; i < 16; i++)
+    for (int i = 0; i < height; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int j = 0; j < width; j++)
         {
-            if (i < 8) // update the top LM
+            if (i < width) // update the top LM
             {
                 topLM[i][j] = displayMemory[i][j];
             }
             else // update the bottom LM
             {
-                botLM[i - 8][j - 8] = displayMemory[i][j];
+                botLM[i - width][j - width] = displayMemory[i][j];
             }
         }
     }
