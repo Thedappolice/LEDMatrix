@@ -4,6 +4,10 @@
 #define DOWN_PIN 4
 #include <LEDMatrix.h>
 
+#include <Dis7Seg.h> //if have 7-segment display liabrary
+int score = 0;
+bool scoring = true;
+
 // Pin configurations of 1st Led matrix
 const int posPintop[] = {2, 3, 4, 5, 6, 7, 8, 9};
 const int negPintop[] = {10, 11, 12, 13, A0, A1, A2, A3};
@@ -27,26 +31,26 @@ int stableMemory[height][width] = {{0}};
 int topLM[width][width] = {{0}};
 int botLM[width][width] = {{0}};
 
-// tetrinominoes (shapes)
-const int J[4][2] = {{3, 15}, {1, 0}, {-1, 0}, {1, 1}};
-const int L[4][2] = {{3, 15}, {1, 0}, {-1, 0}, {1, -1}};
-const int S[4][2] = {{3, 15}, {1, 0}, {-1, 0}, {-1, -1}};
-const int Z[4][2] = {{3, 15}, {-1, 0}, {-1, 0}, {1, -1}};
-const int T[4][2] = {{3, 15}, {1, 0}, {-1, 0}, {0, -1}};
-const int O[4][2] = {{3, 15}, {-1, 0}, {1, 0}, {-1, -1}};
-const int I[4][2] = {{3, 15}, {0, 1}, {0, -1}, {0, -2}};
+// tetrinominoes (shapes) in (x, y)
+const int J[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, 1}};
+const int L[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, -1}};
+const int S[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {-1, -1}};
+const int Z[4][2] = {{3, 0}, {-1, 0}, {-1, 0}, {1, -1}};
+const int T[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {0, -1}};
+const int O[4][2] = {{3, 0}, {-1, 0}, {1, 0}, {-1, -1}};
+const int I[4][2] = {{3, 0}, {0, 1}, {0, -1}, {0, -2}};
 
 // pointer array for the shapes
 int (*shapes[7])[4][2] = {&L, &J, &S, &Z, &T, &O, &I};
 
 // the shape in use
 int currentShape[4][2] = {{0}};
-// input
-char command = '\0';
+
 // determinants
 bool gotShape = false;
+int command = -2;
 
-void genShape(bool gotShape)
+void genShape()
 {
     if (!gotShape)
     {
@@ -59,110 +63,103 @@ void genShape(bool gotShape)
     }
 }
 
-bool stabilizeShape(int direction)
+void stabilizeShape()
 {
-    bool gotShape;
-    switch (direction)
+    if (command == 2)// rotate command
     {
-    case 1:
-        if (currentShape[0][0] + 1 < width)
+        for (int i = 1; i < 4; i++) // flip and negate the relative coordinates of each section of shape
         {
-            currentShape[0][0]++;
+            int rmb = currentShape[i][0];                 // remember the x coordinate
+            currentShape[i][0] = currentShape[i][1] * -1; // update x coordinate with negated version of y
+            currentShape[i][1] = rmb * -1;                // update y with negated x
         }
-        gotShape = true;
-        break;
-    case -1:
-        if (currentShape[0][0] - 1 >= 0)
-        {
-            currentShape[0][0]--;
-        }
-        gotShape = true;
-        break;
-    case 0:
-        int nextStep[4][2] = {{0}};
-        for (int i = 0; i < 4; i++)
-        {
-            if (i == 1)
-            {
-                nextStep[i][0] = currentShape[i][0] + direction;
-                nextStep[i][1] = currentShape[i][1];
-            }
-            else
-            {
-                nextStep[i][0] = currentShape[0][0] + currentShape[i][0];
-                nextStep[i][1] = currentShape[0][1] + currentShape[i][1];
-            }
-        }
-        break;
-    case 2:
-        for (int i = 1; i < 4; i++)
-        {
-            int rmb = currentShape[i][0];
-            currentShape[i][0] = currentShape[i][1] * -1;
-            currentShape[i][1] = rmb * -1;
-        }
-        gotShape = true;
-        break;
     }
-    return gotShape;
-}
+    int shapeCoordinates[4][2]; // in (y, x)
 
-void checkInput()
+    for (int i = 0; i < 4; i++)// get all the coordinates
+    {
+        if (i == 0)
+        {
+            shapeCoordinates[i][1] = currentShape[i][0];
+            shapeCoordinates[i][0] = currentShape[i][1];
+        }
+        else
+        {
+            shapeCoordinates[i][1] = currentShape[0][0] + currentShape[i][0];
+            shapeCoordinates[i][0] = currentShape[0][1] + currentShape[i][1];
+        }
+    }
+
+    if (command == 0) // downward command
+    {
+        for (int i = 0; i < 4; i++) // cheack for each section of the shape
+        {
+            if (stableMemory[shapeCoordinates[i][0] + 1][0] == 1 || shapeCoordinates[i][0] + 1 == height - 1) // if one section's below is already registered as 1 or the section hits the ground
+            {
+                for (int j = 0; j < 4; j++) // record each section's coordinates on the stable memory
+                {
+                    stableMemory[shapeCoordinates[j][0]][shapeCoordinates[j][1]] = 1;
+                }
+                gotShape = false; // shape has been used up
+                break;            // exit the loop early
+            }
+        }
+    }
+    else if (command == 1 || command == -1) // left or right commands
+    {
+        bool shiftable = true;      // can it be shifted
+        for (int i = 0; i < 4; i++) // check each section
+        {
+            if (!(shapeCoordinates[i][1] + command > -1 && shapeCoordinates[i][1] + command < width)) // if it is not in range
+            {
+                shiftable = false; // not shitable
+                break;
+            }
+        }
+        if (shiftable)
+        {
+            currentShape[0][0] = currentShape[0][0] + command; // shift if possible
+        }
+    }
+};
+
+void checkInput(int forced = false) // check and identify the input command
 {
     bool leftState = digitalRead(LEFT_PIN) == HIGH;
     bool rightState = digitalRead(RIGHT_PIN) == HIGH;
     bool downState = digitalRead(DOWN_PIN) == HIGH;
     bool rotateState = digitalRead(ROTATE_PIN) == HIGH;
-
+    if (forced)
+    {
+        command = -2; // default command if no input is detected
+        return;
+    }
     if (rotateState)
     {
-        command = 'o';
-    }
-    else if (downState)
-    {
-        command = 'd';
+        command = 2;
     }
     else if (leftState)
     {
-        command = 'l';
+        command = -1;
     }
     else if (rightState)
     {
-        command = 'r';
+        command = 1;
+    }
+    else if (downState)
+    {
+        command = 0;
     }
     else
     {
-        command = '\0';
+        command = -2;
     }
-}
-
-int commandAndAlterShape()
-{
-    int direction;
-    if (command == 'o')
-    {
-        direction = 2;
-    }
-    else if (command == 'l')
-    {
-        direction = -1;
-    }
-    else if (command == 'r')
-    {
-        direction = 1;
-    }
-    else if (command == 'd')
-    {
-        direction = 0;
-    }
-    command = '\0';
-    return direction;
 }
 
 void scanAndClearGrid()
 {
-    int fullRows[4];     // Array to store the indices of full rows initialized to -1
-    int arrayCount = -1; // Counter for index of full rows
+    int fullRows[4] = {-1, -1, -1, -1}; // Array to store the indices of full rows initialized to -1
+    int arrayCount = -1;                // Counter for index of full rows
 
     for (int i = height - 1; i >= 0; i--)
     {
@@ -213,6 +210,12 @@ void scanAndClearGrid()
             {
                 stableMemory[i][j] = stableMemory[i - (arrayCount + 1)][j]; // bring the rest of the rows downwards
             }
+        }
+
+        if (scoring) // if scoring is enabled
+        {
+            int rows = arrayCount;           // rows cleared
+            score = score + pow(rows, rows); // add the score
         }
     }
 }
@@ -267,8 +270,14 @@ void showDisplay()
             }
         }
     }
-    LMtop.Symbol(topLM);
-    LMbot.Symbol(botLM);
+
+    unsigned long interval = 200;
+    unsigned long prev = millis();
+    while (millis() - prev < interval)
+    {
+        LMtop.Symbol(topLM);
+        LMbot.Symbol(botLM);
+    }
 }
 
 void setup()
@@ -278,8 +287,14 @@ void setup()
 
 void loop()
 {
-    displayUpdate();
+    genShape();
+
     checkInput();
-    checkAndAlterShape();
+    stabilizeShape();
+    checkInput(true);
+    stabilizeShape();
+
+    scanAndClearGrid();
+    displayUpdate();
     showDisplay();
 }
