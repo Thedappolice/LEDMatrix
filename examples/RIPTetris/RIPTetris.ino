@@ -162,9 +162,9 @@ void scanAndClearGrid()
     }
 };
 
-void Display()
+void displayUpdate()
 {
-    for (int i = 0; i < 16; i++)//clear grid
+    for (int i = 0; i < 16; i++) // clear grid
     {
         for (int j = 0; j < 8; j++)
         {
@@ -172,8 +172,47 @@ void Display()
         }
     }
 
+    for (int i = 0; i < 16; i++) // light all existing stable coordinates
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (stableMemory[i][j] == 1)
+            {
+                displayMemory[i][j] = 1;
+            }
+        }
+    }
 
+    for (int i = 0; i < 4; i++) // light the moving shape
+    {
+        if (i == 0)
+        {
+            displayMemory[currentShape[i][0]][currentShape[i][1]] = 1;
+        }
+        else
+        {
+            displayMemory[currentShape[0][0] + currentShape[i][0]][currentShape[0][1] + currentShape[i][1]] = 1;
+        }
+    }
 };
+
+void showDisplay()
+{
+    for (int i = 0; i < 16; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (i < 8) // update the top LM
+            {
+                topLM[i][j] = displayMemory[i][j];
+            }
+            else // update the bottom LM
+            {
+                botLM[i - 8][j - 8] = displayMemory[i][j];
+            }
+        }
+    }
+}
 
 void setup()
 {
