@@ -1,12 +1,17 @@
+#include <Dis7Seg.h> //if have 7-segment display liabrary
+int score = 0;
+bool scoring = true;
+
+Dis7Seg dis('-', segmentPins, 4, digitPins);
+int digitPins[] = {10, 11, 12, 13};
+int segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int scoreOut[] = {-1, -1, -1, 0};
+
 #define ROTATE_PIN 1
 #define LEFT_PIN 2
 #define RIGHT_PIN 3
 #define DOWN_PIN 4
 #include <LEDMatrix.h>
-
-#include <Dis7Seg.h> //if have 7-segment display liabrary
-int score = 0;
-bool scoring = true;
 
 // Pin configurations of 1st Led matrix
 const int posPintop[] = {2, 3, 4, 5, 6, 7, 8, 9};
@@ -100,11 +105,11 @@ void stabilizeShape()
             {
                 if (shapeCoordinates[i][1] > width)
                 {
-                    error = shapeCoordinates[i][1] - width
+                    error = shapeCoordinates[i][1] - width;
                 }
                 else
                 {
-                    error = -1 * shapeCoordinates[i][1]
+                    error = -1 * shapeCoordinates[i][1];
                 }
             }
         }
@@ -244,13 +249,22 @@ void scanAndClearGrid()
 
         if (scoring) // if scoring is enabled
         {
-            int rows = arrayCount;           // rows cleared
-            score = score + pow(rows, rows); // add the score
+            int rows = arrayCount + 1;              // rows cleared
+            int newScore = score + pow(rows, rows); // add the score
+            
+            if (score != newScore)
+            {
+                score = newScore;
+                int numbers[4];
+                numbers[3] = score  
+                
+                
+            }
         }
     }
 }
 
-void displayUpdate()
+void gatherDisplay()
 {
     for (int i = 0; i < height; i++) // clear grid
     {
@@ -300,38 +314,45 @@ void showDisplay()
             }
         }
     }
-
-    
 }
 
 void EndorRun()
 {
-    if (!end)
+    if (!end) // if not ending
     {
-
         unsigned long interval = 200;
         unsigned long prev = millis();
-        while (millis() - prev < interval)
+        while (millis() - prev < interval) // refresh according to interval
         {
             LMtop.Symbol(topLM);
             LMbot.Symbol(botLM);
+            dis.scan(scoreOut);
         }
     }
-    else
+    else // ending
     {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 5; i++) // blink the entire display 5 times
         {
             LMtop.Symbol(topLM);
             LMbot.Symbol(botLM);
+            dis.scan(scoreOut);
         }
 
-        for (int i = height - 1; i > -1; i--)
+        for (int i = height - 1; i > -1; i--) // delete and show the entire display
         {
             for (int j = width - 1; i > -1; i--)
             {
                 displayMemory[i][j] = 0;
                 showDisplay();
+                dis.scan(scoreOut);
             }
+        }
+
+        unsigned long finalInterval = 200;
+        unsigned long finalprev = millis();
+        while (millis() - finalprev < finalInterval) // refresh according to interval
+        {
+            dis.scan(scoreOut);
         }
     }
 }
@@ -351,6 +372,7 @@ void loop()
     stabilizeShape();
 
     scanAndClearGrid();
-    displayUpdate();
+    gatherDisplay();
     showDisplay();
+    EndorRun();
 }
