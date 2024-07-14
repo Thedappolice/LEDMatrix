@@ -49,6 +49,7 @@ int currentShape[4][2] = {{0}};
 // determinants
 bool gotShape = false;
 int command = -2;
+bool end = false;
 
 void genShape()
 {
@@ -120,7 +121,15 @@ void stabilizeShape()
             {
                 for (int j = 0; j < 4; j++) // record each section's coordinates on the stable memory
                 {
-                    stableMemory[shapeCoordinates[j][0]][shapeCoordinates[j][1]] = 1;
+                    if (shapeCoordinates[j][0] > -1)
+                    {
+                        stableMemory[shapeCoordinates[j][0]][shapeCoordinates[j][1]] = 1;
+                    }
+                    else
+                    {
+                        end = true;
+                        return;
+                    }
                 }
                 gotShape = false; // shape has been used up
                 break;            // exit the loop early
@@ -128,7 +137,7 @@ void stabilizeShape()
         }
         return;
     }
-    
+
     if (command == 1 || command == -1) // left or right commands
     {
         bool shiftable = true;      // can it be shifted
@@ -292,12 +301,38 @@ void showDisplay()
         }
     }
 
-    unsigned long interval = 200;
-    unsigned long prev = millis();
-    while (millis() - prev < interval)
+    
+}
+
+void EndorRun()
+{
+    if (!end)
     {
-        LMtop.Symbol(topLM);
-        LMbot.Symbol(botLM);
+
+        unsigned long interval = 200;
+        unsigned long prev = millis();
+        while (millis() - prev < interval)
+        {
+            LMtop.Symbol(topLM);
+            LMbot.Symbol(botLM);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            LMtop.Symbol(topLM);
+            LMbot.Symbol(botLM);
+        }
+
+        for (int i = height - 1; i > -1; i--)
+        {
+            for (int j = width - 1; i > -1; i--)
+            {
+                displayMemory[i][j] = 0;
+                showDisplay();
+            }
+        }
     }
 }
 
