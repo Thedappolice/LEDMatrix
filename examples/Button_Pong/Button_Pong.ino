@@ -225,13 +225,7 @@ void display()
 void updateMem()
 {
   // Clear memory
-  for (int i = 0; i < 8; i++)
-  {
-    for (int j = 0; j < 8; j++)
-    {
-      memory[j][i] = 0;
-    }
-  }
+  memcpy(memory, 0, 8 * 8 * sizeof(int));
 
   // Update memory based on player shifts and ball position
   for (int j = 0; j < 8; j++)
