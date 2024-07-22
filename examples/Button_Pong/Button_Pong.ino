@@ -10,7 +10,7 @@ int wall[] = {0, 0, 1, 1, 1, 0, 0, 0};
 // LED Matrix object initialization
 LEDMatrix LM(posPin, 8, negPin, 8);
 
-// Definitions for pin-like variables
+// pins for the buttons
 #define P1left A4
 #define P1right A5
 #define P2left A7
@@ -21,25 +21,26 @@ bool balldelayed = false;
 unsigned long timeupdate;
 unsigned long balldelaytime = 1000;
 
-// Ball control variables
+// Ball control
 int ballX = random(3, 5);
 int ballY = random(3, 5);
-bool ballXdirPos = true;
-bool ballYdirPos = true;
+bool ballXdirPos = ((random(0, 2)) == 0) ? true : false;
+bool ballYdirPos = ((random(0, 2)) == 0) ? true : false;
 
-// Input detection variables
+// Input detection
 bool P1changed = false;
 bool P2changed = false;
 
-// Variables for array position alteration
+// array positioning
 int P1shift = 0;
 int P2shift = 0;
 
-// Game assets allocation
+// Game memory
 int memory[8][8] = {{0}};
 
 void ShowSymbol(char input, unsigned long delay = 0)
 {
+  // display arrays
   int display[8][8] = {{0}};
   int W[8][8] = {
       {1, 0, 0, 0, 0, 0, 0, 1},
@@ -105,6 +106,7 @@ void ShowSymbol(char input, unsigned long delay = 0)
       {0, 1, 1, 1, 1, 1, 1, 0},
       {0, 0, 1, 1, 1, 1, 0, 0}};
 
+  // Copy input symbol to display array
   switch (input)
   {
   case 'W':
@@ -130,6 +132,7 @@ void ShowSymbol(char input, unsigned long delay = 0)
     break;
   }
 
+  // Call the LM.Symbol function to display the symbol on the LED matrix with time if given
   if (delay != 0)
   {
     LM.Symbol(display, delay);
@@ -138,7 +141,7 @@ void ShowSymbol(char input, unsigned long delay = 0)
   {
     LM.Symbol(display);
   }
-}
+};
 
 // Function to limit player input
 int limitingshift(int value, bool positiveDir)
@@ -153,13 +156,13 @@ int limitingshift(int value, bool positiveDir)
     mem = value - 1;
   }
   return mem;
-}
+};
 
 // Function to increase ball speed
 void fasterball()
 {
   balldelaytime = ceil(500 - millis() / 150);
-}
+};
 
 // Function to check button inputs
 void checkbutton()
@@ -208,7 +211,7 @@ void checkbutton()
       P2changed = false;
     }
   }
-}
+};
 
 // Function to display on the LED Matrix
 void display()
@@ -216,7 +219,7 @@ void display()
   LM.customRow(wall, 0, P1shift);
   LM.customRow(wall, 7, P2shift);
   LM.turnOn(ballY, ballX);
-}
+};
 
 // Function to update game memory
 void updateMem()
@@ -248,7 +251,7 @@ void updateMem()
   }
 
   memory[ballY][ballX] = 1;
-}
+};
 
 // Function to change ball position
 void ballchange()
@@ -280,7 +283,7 @@ void ballchange()
     timeupdate = millis();
     balldelayed = true;
   }
-}
+};
 
 // Function to end the game
 void End(bool isP1)
@@ -303,7 +306,8 @@ void End(bool isP1)
   }
 
   exit(1); // Exit code; reset to restart
-}
+};
+
 // Setup function
 void setup()
 {
