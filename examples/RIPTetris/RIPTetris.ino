@@ -347,14 +347,13 @@ void EndorRun()
                 dis.scan(scoreOut);
             }
         }
-
-        unsigned long finalInterval = 200;
-        unsigned long finalprev = millis();
-        while (millis() - finalprev < finalInterval) // refresh according to interval
-        {
-            dis.scan(scoreOut);
-        }
     }
+}
+
+void ending ()
+{
+dis.scan();
+
 }
 
 void setup()
@@ -363,6 +362,8 @@ void setup()
 }
 
 void loop()
+{
+if(!end)
 {
     genShape();
 
@@ -375,4 +376,9 @@ void loop()
     gatherDisplay();
     showDisplay();
     EndorRun();
+}
+else
+{
+ending();
+}
 }
