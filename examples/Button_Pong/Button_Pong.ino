@@ -228,20 +228,14 @@ void updateMem()
   memcpy(memory, 0, 8 * 8 * sizeof(int));
 
   // Update memory based on player shifts and ball position
-  for (int j = 0; j < 8; j++)
+  for (int j = 2 + P1shift; j < 4 + P1shift; j++)
   {
-    if (2 + P1shift == j || 3 + P1shift == j || 4 + P1shift == j)
-    {
-      memory[j][0] = 1;
-    }
+    memory[j][0] = 1;
   }
 
-  for (int j = 0; j < 8; j++)
+  for (int j = 2 + P2shift; j < 4 + P2shift; j++)
   {
-    if (2 + P2shift == j || 3 + P2shift == j || 4 + P2shift == j)
-    {
-      memory[j][7] = 1;
-    }
+    memory[j][7] = 1;
   }
 
   memory[ballY][ballX] = 1;
