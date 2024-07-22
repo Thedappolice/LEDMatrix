@@ -250,16 +250,41 @@ void updateMem()
   memory[ballY][ballX] = 1;
 }
 
+// Function to change ball position
+void ballchange()
+{
+  if (balldelayed)
+  {
+    if (millis() - timeupdate > balldelaytime)
+    {
+
+      ballYdirPos = (ballY == 0 || ballY == 7) ? !ballYdirPos : ballYdirPos; // Change Y direction if ball reaches top or bottom
+
+      ballY = (ballYdirPos) ? ballY + 1 : ballY - 1; // shift the ball Y direction
+
+      ballX = (ballXdirPos) ? ballX + 1 : ballX - 1; // shift the ball in X direction
+
+      if ((ballX == 0 || ballX == 7) && memory[ballY][ballX] != 1) // Check if player edge blocks the ball
+      {
+        (ballX == 0) ? End(1) : End(2); // run ending respectively
+      }
+
+      ballXdirPos = (ballXdirPos) ? !ballXdirPos : ballXdirPos; // Change X direction of the ball
+
+      balldelayed = false;
+    }
+  }
+  else
+  {
+    // Record previous time
+    timeupdate = millis();
+    balldelayed = true;
+  }
+}
+
 // Function to end the game
 void End(bool isP1)
 {
-  // Move the ball to final position
-  ballX = (ballXdirPos) ? ballX + 1 : ballX - 1;
-
-  ballYdirPos = (ballY == 0 || ballY == 7) ? !ballYdirPos : ballYdirPos;
-
-  ballY = (ballYdirPos) ? ballY + 1 : ballY - 1;
-
   // Blink ball position for losing side indication
   for (int i = 0; i < 20; i++)
   {
@@ -279,49 +304,6 @@ void End(bool isP1)
 
   exit(1); // Exit code; reset to restart
 }
-
-// Function to change ball position
-void ballchange()
-{
-  bool checkIsFacePos;
-  if (balldelayed)
-  {
-    if (millis() - timeupdate > balldelaytime)
-    {
-      if (ballX == 1 || ballX == 6) // Check if ball reaches player edge
-      {
-        checkIsFacePos = (ballX == 1) ? false : true; // set the checking direction
-
-        if (memory[ballY][ballX + checkIsFacePos] != 1) // Check if player edge blocks the ball
-        {
-          (checkIsFacePos) ? End(1) : End(2); // run ending respectively
-        }
-        else
-        {
-          ballXdirPos = (ballXdirPos) ? false : true; // Change X direction of the ball
-        }
-      }
-
-      ballX = (ballXdirPos == true) ? ballX + 1 : ballX - 1; // shift th eball in X direction
-
-      if (ballY == 0 || ballY == 7)
-      {
-        ballYdirPos = (ballYdirPos == true) ? false : true; // Change Y direction if ball reaches top or bottom
-      }
-
-      ballY = (ballYdirPos == true) ? ballY + 1 : ballY - 1; // shift the ball Y direction
-
-      balldelayed = false;
-    }
-  }
-  else
-  {
-    // Record previous time
-    timeupdate = millis();
-    balldelayed = true;
-  }
-}
-
 // Setup function
 void setup()
 {
