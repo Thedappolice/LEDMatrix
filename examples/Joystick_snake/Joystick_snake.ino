@@ -22,7 +22,9 @@ bool foodExists = false;
 int Mayfood[64][2] = {{0}};
 // Assuming a maximum of 64 possible food locations
 
-// End and win matrices
+void ShowSymbol(char input, unsigned long duration = 0)
+{
+int display [8][8] ={{0}};
 int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -32,8 +34,7 @@ int End[8][8] = {
     {1, 0, 0, 1, 0, 1, 1, 0},
     {1, 1, 1, 1, 0, 1, 0, 1},
     {0, 0, 0, 0, 0, 0, 0, 0}};
-
-int Win[8][8] = {
+int Star[8][8] = {
     {0, 0, 0, 1, 0, 0, 0, 0},
     {0, 0, 0, 1, 0, 0, 0, 0},
     {0, 0, 1, 1, 1, 0, 0, 0},
@@ -42,8 +43,6 @@ int Win[8][8] = {
     {0, 0, 1, 1, 1, 0, 0, 0},
     {0, 1, 1, 0, 1, 1, 0, 0},
     {1, 1, 0, 0, 0, 1, 1, 0}};
-
-// Number matrices for countdown
 int N1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 0, 1, 1, 1, 0, 0, 0},
@@ -53,7 +52,6 @@ int N1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
-
 int N2[8][8] = {
     {0, 0, 1, 1, 1, 1, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
@@ -63,7 +61,6 @@ int N2[8][8] = {
     {0, 0, 1, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
-
 int N3[8][8] = {
     {0, 0, 1, 1, 1, 1, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
@@ -73,6 +70,26 @@ int N3[8][8] = {
     {0, 0, 0, 0, 0, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 0, 1, 1, 1, 1, 0, 0}};
+switch (input)
+{case '1':
+memcpy(display, N1, 8*8*sizeof(int));
+break;
+case '2':
+memcpy(display, N2, 8*8*sizeof(int));
+break;
+case '3':
+memcpy(display, N3, 8*8*sizeof(int));
+break;
+case 'S':
+memcpy(display, Star, 8*8*sizeof(int));
+break;
+case 'E':
+memcpy(display, End, 8*8*sizeof(int));
+break;
+}
+
+LM.Symbol(display,(duration>0)?duration : duration);
+};
 
 int display[8][8] = {{0}};
 
