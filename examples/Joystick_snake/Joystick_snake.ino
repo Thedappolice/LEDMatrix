@@ -88,7 +88,7 @@ memcpy(display, End, 8*8*sizeof(int));
 break;
 }
 
-LM.Symbol(display,(duration>0)?duration : duration);
+(duration> 0)? LM.Symbol(display, duration) : LM.Symbol(display);
 };
 
 int display[8][8] = {{0}};
