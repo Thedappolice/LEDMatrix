@@ -24,7 +24,7 @@ int Mayfood[64][2] = {{0}};
 
 void ShowSymbol(char input, unsigned long duration = 0)
 {
-int display [8][8] ={{0}};
+int display [8][8] = {{0}};
 int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -313,23 +313,11 @@ void refreshMem()
 }
 
 // Function to update display based on memory
-void MemtoDisplay()
+void MemtoDisplay(unsigned long delay)
 {
-    // Update display based on memory state
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (memory[i][j][2] != 0)
-            {
-                display[i][j] = 1; // Snake or food present at this position
-            }
-            else
-            {
-                display[i][j] = 0; // Empty space
-            }
-        }
-    }
+int display [8][8] = {{0}};
+ memcpy(display, memory, 8*8*sizeof(int));
+(delay > 0)?LM.Symbol(display, delay): Lm.Symbol(display);
 }
 
 // Function to handle end of game animation
@@ -344,8 +332,7 @@ void ending()
 
 for(int c = length;c>0 ; c--)
 {memory [body[c][0]][body[c][1]][2] = 0;
-MemtoDisplay();
-LM.Symbol(display,250);
+MemtoDisplay(250);
 }
 
     // Display end game message
@@ -367,9 +354,9 @@ LM.Symbol(display,250);
 void setup()
 {
     // Initialize LEDMatrix with countdown
-    LM.Symbol(N3); // Countdown 3
-    LM.Symbol(N2); // Countdown 2
-    LM.Symbol(N1); // Countdown 1
+   ShowSymbol('3'); // Countdown 3
+   ShowSymbol('2'); // Countdown 2
+   ShowSymbol('1'); // Countdown 1
 
     randomSeed(analogRead(A4)); // Initialize random seed
 
