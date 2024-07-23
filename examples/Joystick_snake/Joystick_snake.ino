@@ -32,7 +32,7 @@ int memory[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0}};
 
 char direction = 'u'; // Initial direction ('u' for up)
-bool end = false;     // Game end flag
+bool end = false;     // Game end condition
 bool win = false;     // Game win flag
 
 void ShowSymbol(char input, unsigned long duration = 0)
