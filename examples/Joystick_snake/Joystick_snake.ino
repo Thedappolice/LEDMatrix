@@ -342,22 +342,11 @@ void ending()
         delay(100);
     }
 
-    // Retract snake from tail to head
-    for (int c = length; c > 0; c--)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                if (memory[i][j][2] == c)
-                {
-                    memory[i][j][2] = 0;     // Clear snake position
-                    MemtoDisplay();          // Update display
-                    LM.Symbol(display, 250); // Display updated state
-                }
-            }
-        }
-    }
+for(int c = length;c>0 ; c--)
+{memory [body[c][0]][body[c][1]][2] = 0;
+MemtoDisplay();
+LM.Symbol(display,250);
+}
 
     // Display end game message
     if (!win)
