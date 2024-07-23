@@ -19,168 +19,142 @@ int body[64][2] = {
 int head[2] = {4, 4};
 
 bool foodExists = false;
-int Mayfood[64][2] = {{0}};
-// Assuming a maximum of 64 possible food locations
-
-void ShowSymbol(char input, unsigned long duration = 0)
-{
-int display [8][8] = {{0}};
-int End[8][8] = {
-    {0, 0, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 0, 0},
-    {1, 1, 1, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 0, 0, 1, 0, 0, 1},
-    {1, 0, 0, 1, 0, 1, 1, 0},
-    {1, 1, 1, 1, 0, 1, 0, 1},
-    {0, 0, 0, 0, 0, 0, 0, 0}};
-int Star[8][8] = {
-    {0, 0, 0, 1, 0, 0, 0, 0},
-    {0, 0, 0, 1, 0, 0, 0, 0},
-    {0, 0, 1, 1, 1, 0, 0, 0},
-    {1, 1, 1, 1, 1, 1, 1, 0},
-    {0, 1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 1, 1, 1, 0, 0, 0},
-    {0, 1, 1, 0, 1, 1, 0, 0},
-    {1, 1, 0, 0, 0, 1, 1, 0}};
-int N1[8][8] = {
-    {0, 0, 0, 1, 1, 0, 0, 0},
-    {0, 0, 1, 1, 1, 0, 0, 0},
-    {0, 1, 1, 1, 1, 0, 0, 0},
-    {0, 0, 0, 1, 1, 0, 0, 0},
-    {0, 0, 0, 1, 1, 0, 0, 0},
-    {0, 0, 0, 1, 1, 0, 0, 0},
-    {0, 1, 1, 1, 1, 1, 1, 0},
-    {0, 1, 1, 1, 1, 1, 1, 0}};
-int N2[8][8] = {
-    {0, 0, 1, 1, 1, 1, 0, 0},
-    {0, 1, 1, 1, 1, 1, 1, 0},
-    {0, 1, 1, 0, 0, 1, 1, 0},
-    {0, 0, 0, 0, 1, 1, 1, 0},
-    {0, 0, 0, 1, 1, 1, 0, 0},
-    {0, 0, 1, 1, 1, 0, 0, 0},
-    {0, 1, 1, 1, 1, 1, 1, 0},
-    {0, 1, 1, 1, 1, 1, 1, 0}};
-int N3[8][8] = {
-    {0, 0, 1, 1, 1, 1, 0, 0},
-    {0, 1, 1, 1, 1, 1, 1, 0},
-    {0, 0, 0, 0, 0, 1, 1, 0},
-    {0, 0, 1, 1, 1, 1, 0, 0},
-    {0, 0, 1, 1, 1, 1, 0, 0},
-    {0, 0, 0, 0, 0, 1, 1, 0},
-    {0, 1, 1, 1, 1, 1, 1, 0},
-    {0, 0, 1, 1, 1, 1, 0, 0}};
-switch (input)
-{case '1':
-memcpy(display, N1, 8*8*sizeof(int));
-break;
-case '2':
-memcpy(display, N2, 8*8*sizeof(int));
-break;
-case '3':
-memcpy(display, N3, 8*8*sizeof(int));
-break;
-case 'S':
-memcpy(display, Star, 8*8*sizeof(int));
-break;
-case 'E':
-memcpy(display, End, 8*8*sizeof(int));
-break;
-}
-
-(duration> 0)? LM.Symbol(display, duration) : LM.Symbol(display);
-};
-
-int display[8][8] = {{0}};
 
 // Memory to track snake and food positions
-int memory[8][8][3] = {
-    {{0, 0, 0}, {0, 1, 0}, {0, 2, 0}, {0, 3, 0}, {0, 4, 0}, {0, 5, 0}, {0, 6, 0}, {0, 7, 0}},
-    {{1, 0, 0}, {1, 1, 0}, {1, 2, 0}, {1, 3, 0}, {1, 4, 0}, {1, 5, 0}, {1, 6, 0}, {1, 7, 0}},
-    {{2, 0, 0}, {2, 1, 0}, {2, 2, 0}, {2, 3, 0}, {2, 4, 0}, {2, 5, 0}, {2, 6, 0}, {2, 7, 0}},
-    {{3, 0, 0}, {3, 1, 0}, {3, 2, 0}, {3, 3, 0}, {3, 4, 0}, {3, 5, 0}, {3, 6, 0}, {3, 7, 0}},
-    {{4, 0, 0}, {4, 1, 0}, {4, 2, 0}, {4, 3, 0}, {4, 4, 1}, {4, 5, 0}, {4, 6, 0}, {4, 7, 0}},
-    {{5, 0, 0}, {5, 1, 0}, {5, 2, 0}, {5, 3, 0}, {5, 4, 2}, {5, 5, 0}, {5, 6, 0}, {5, 7, 0}},
-    {{6, 0, 0}, {6, 1, 0}, {6, 2, 0}, {6, 3, 0}, {6, 4, 3}, {6, 5, 0}, {6, 6, 0}, {6, 7, 0}},
-    {{7, 0, 0}, {7, 1, 0}, {7, 2, 0}, {7, 3, 0}, {7, 4, 0}, {7, 5, 0}, {7, 6, 0}, {7, 7, 0}}};
+int memory[8][8] = {
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 1, 0, 0, 0},
+    {0, 0, 0, 0, 2, 0, 0, 0},
+    {0, 0, 0, 0, 3, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0}};
 
 char direction = 'u'; // Initial direction ('u' for up)
 bool end = false;     // Game end flag
 bool win = false;     // Game win flag
 
+void ShowSymbol(char input, unsigned long duration = 0)
+{
+    int display[8][8] = {{0}};
+    int End[8][8] = {
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {1, 1, 1, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 0, 0, 1, 0, 0, 1},
+        {1, 0, 0, 1, 0, 1, 1, 0},
+        {1, 1, 1, 1, 0, 1, 0, 1},
+        {0, 0, 0, 0, 0, 0, 0, 0}};
+    int Star[8][8] = {
+        {0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {1, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 0, 1, 1, 0, 0},
+        {1, 1, 0, 0, 0, 1, 1, 0}};
+    int N1[8][8] = {
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0}};
+    int N2[8][8] = {
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 0, 0, 1, 1, 0},
+        {0, 0, 0, 0, 1, 1, 1, 0},
+        {0, 0, 0, 1, 1, 1, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0}};
+    int N3[8][8] = {
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 0, 0, 0, 0, 1, 1, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 0, 0, 0, 0, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0}};
+    switch (input)
+    {
+    case '1':
+        memcpy(display, N1, 8 * 8 * sizeof(int));
+        break;
+    case '2':
+        memcpy(display, N2, 8 * 8 * sizeof(int));
+        break;
+    case '3':
+        memcpy(display, N3, 8 * 8 * sizeof(int));
+        break;
+    case 'S':
+        memcpy(display, Star, 8 * 8 * sizeof(int));
+        break;
+    case 'E':
+        memcpy(display, End, 8 * 8 * sizeof(int));
+        break;
+    }
+
+    (duration > 0) ? LM.Symbol(display, duration) : LM.Symbol(display);
+};
+
 // Function to check user input direction
-void checkdirection()
+void checkdInput()
 {
     char Command = direction; // Default to current direction
     if (millis() - lastDebounceTime > debounceDelay)
     {
+        char oppDir = 'u'; // Initialize opposite direction with default value
+
         if (analogRead(A7) > 768)
         {
             Command = 'l'; // Left
+            oppDir = 'r';
         }
         else if (analogRead(A7) < 256)
         {
             Command = 'r'; // Right
+            oppDir = 'l';
         }
         else if (analogRead(A6) > 768)
         {
             Command = 'd'; // Down
+            oppDir = 'u';
         }
         else if (analogRead(A6) < 256)
         {
             Command = 'u'; // Up
-        }
-
-        char oppdirection = 'u'; // Initialize opposite direction with default value
-
-        // Determine opposite direction based on current direction
-        switch (direction)
-        {
-        case 'u':
-            oppdirection = 'd';
-            break;
-        case 'd':
-            oppdirection = 'u';
-            break;
-        case 'l':
-            oppdirection = 'r';
-            break;
-        case 'r':
-            oppdirection = 'l';
-            break;
-        default:
-            oppdirection = 'u'; // Default case to ensure oppdirection is always initialized
-            break;
+            oppDir = 'd';
         }
 
         // Update direction if it's not opposite to the current direction
-        if (Command != oppdirection)
+        if (Command != oppDir)
         {
             direction = Command;
         }
     }
-}
+};
 
 // Function to generate food at random empty locations on the board
 void generateFood()
 {
     if (!foodExists)
     {
-        // Reset all potential food locations
-        for (int i = 0; i < 64; i++)
-        {
-            Mayfood[i][0] = 0;
-            Mayfood[i][1] = 0;
-        }
-
         int count = 0;
-
+        int Mayfood[64][2] = {{0}};
         // Iterate through the board to find empty spots for food placement
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
-                if (memory[i][j][2] == 0)
+                if (memory[i][j] == 0)
                 {
                     // Found an empty spot
                     Mayfood[count][0] = i;
@@ -194,7 +168,7 @@ void generateFood()
         if (count > 0)
         {
             int randIndex = random(0, count);
-            memory[Mayfood[randIndex][0]][Mayfood[randIndex][1]][2] = -1; // Set food at this location
+            memory[Mayfood[randIndex][0]][Mayfood[randIndex][1]] = -1; // Set food at this location
             foodExists = true;
         }
         else
@@ -205,13 +179,11 @@ void generateFood()
             return;
         }
     }
-}
+};
 
 // Function to update snake's position and check for collisions
-void refreshMem()
+void refreshSnake()
 {
-    int prelength = length;
-
     // Update head position based on current direction
     switch (direction)
     {
@@ -223,7 +195,7 @@ void refreshMem()
         }
         else
         {
-            head[0] = head[0] - 1;
+            head[0] -= 1;
         }
         break;
     case 'd':
@@ -234,7 +206,7 @@ void refreshMem()
         }
         else
         {
-            head[0] = head[0] + 1;
+            head[0] += 1;
         }
         break;
     case 'l':
@@ -245,7 +217,7 @@ void refreshMem()
         }
         else
         {
-            head[1] = head[1] - 1;
+            head[1] -= 1;
         }
         break;
     case 'r':
@@ -256,13 +228,13 @@ void refreshMem()
         }
         else
         {
-            head[1] = head[1] + 1;
+            head[1] += 1;
         }
         break;
     }
 
     // Check if snake hits itself
-    for (int i = 0; i < length - 1; i++)
+    for (int i = 0; i < length; i++)
     {
         if (body[i][0] == head[0] && body[i][1] == head[1])
         {
@@ -272,9 +244,9 @@ void refreshMem()
     }
 
     // Check if snake eats the food
-    if (memory[head[0]][head[1]][2] == -1)
+    if (memory[head[0]][head[1]] == -1)
     {
-        prelength++;        // Increase snake length
+        length++;           // Increase snake length immediately
         foodExists = false; // Food eaten, generate new food
     }
 
@@ -290,35 +262,23 @@ void refreshMem()
     body[0][1] = head[1];
 
     // Clear memory
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (memory[i][j][2] > 0)
-            {
-                memory[i][j][2] = 0; // Clear previous positions
-            }
-        }
-    }
+    memset(memory, 0, 8 * 8 * sizeof(int)); // Clear the entire memory array
 
-    memory[head[0]][head[1]][2] = 1; // Set new head position in memory
+    // Set new head position in memory
+    memory[head[0]][head[1]] = 1;
 
     // Update memory with body positions
-    for (int i = 0; i < length - 1; i++)
+    for (int i = 0; i < length; i++)
     {
-        memory[body[i + 1][0]][body[i + 1][1]][2] = i + 2;
+        memory[body[i][0]][body[i][1]] = 1;
     }
-
-    length = prelength; // Update snake length
-}
+};
 
 // Function to update display based on memory
-void MemtoDisplay(unsigned long delay)
+void display(unsigned long duration)
 {
-int display [8][8] = {{0}};
- memcpy(display, memory, 8*8*sizeof(int));
-(delay > 0)?LM.Symbol(display, delay): Lm.Symbol(display);
-}
+    (duration > 0) ? LM.Symbol(memory, duration) : LM.Symbol(memory);
+};
 
 // Function to handle end of game animation
 void ending()
@@ -326,46 +286,46 @@ void ending()
     // Blink display to indicate end of game
     for (int i = 0; i < 10; i++)
     {
-        LM.Symbol(display);
+        LM.Symbol(memory);
         delay(100);
     }
 
-for(int c = length;c>0 ; c--)
-{memory [body[c][0]][body[c][1]][2] = 0;
-MemtoDisplay(250);
-}
+    for (int c = length; c > 0; c--)
+    {
+        memory[body[c][0]][body[c][1]][2] = 0;
+        LM.Symbol(memory, 250);
+    }
 
     // Display end game message
     if (!win)
     {
         LM.Symbol(End, 10000); // Loss animation
+        ShowSymbol('E');
     }
     else
     {
         for (int i = 0; i < 5; i++)
         {
-            LM.Symbol(Win, 500); // Win animation (blink)
+            LM.Symbol('S', 500); // Win animation (blink)
         }
     }
 
     exit(0); // Exit the program after animation
-}
+};
 
 void setup()
 {
     // Initialize LEDMatrix with countdown
-   ShowSymbol('3'); // Countdown 3
-   ShowSymbol('2'); // Countdown 2
-   ShowSymbol('1'); // Countdown 1
+    ShowSymbol('3'); // Countdown 3
+    ShowSymbol('2'); // Countdown 2
+    ShowSymbol('1'); // Countdown 1
 
     randomSeed(analogRead(A4)); // Initialize random seed
-
-    MemtoDisplay(); // Initialize display
 
     // Blink starting animation
     for (int i = 0; i < 10; i++)
     {
-        LM.Symbol(display);
+        LM.Symbol(memory);
         delay(200);
     }
 }
@@ -375,11 +335,10 @@ void loop()
     // Game loop
     if (!end)
     {
-        generateFood();               // Generate new food if needed
-        checkdirection();             // Check user input direction
-        refreshMem();                 // Update snake position and check collisions
-        MemtoDisplay();               // Update display based on memory
-        LM.Symbol(display, interval); // Display updated state with interval delay
+        generateFood(); // Generate new food if needed
+        checkdInput();  // Check user input direction
+        refreshSnake(); // Update snake position and check collisions
+        display();      // Update display based on memory
     }
     else
     {
