@@ -22,7 +22,9 @@ bool foodExists = false;
 int Mayfood[64][2] = {{0}};
 // Assuming a maximum of 64 possible food locations
 
-// End and win matrices
+void ShowSymbol(char input, unsigned long duration = 0)
+{
+int display [8][8] = {{0}};
 int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0, 0},
@@ -32,8 +34,7 @@ int End[8][8] = {
     {1, 0, 0, 1, 0, 1, 1, 0},
     {1, 1, 1, 1, 0, 1, 0, 1},
     {0, 0, 0, 0, 0, 0, 0, 0}};
-
-int Win[8][8] = {
+int Star[8][8] = {
     {0, 0, 0, 1, 0, 0, 0, 0},
     {0, 0, 0, 1, 0, 0, 0, 0},
     {0, 0, 1, 1, 1, 0, 0, 0},
@@ -42,8 +43,6 @@ int Win[8][8] = {
     {0, 0, 1, 1, 1, 0, 0, 0},
     {0, 1, 1, 0, 1, 1, 0, 0},
     {1, 1, 0, 0, 0, 1, 1, 0}};
-
-// Number matrices for countdown
 int N1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 0, 1, 1, 1, 0, 0, 0},
@@ -53,7 +52,6 @@ int N1[8][8] = {
     {0, 0, 0, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
-
 int N2[8][8] = {
     {0, 0, 1, 1, 1, 1, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
@@ -63,7 +61,6 @@ int N2[8][8] = {
     {0, 0, 1, 1, 1, 0, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0}};
-
 int N3[8][8] = {
     {0, 0, 1, 1, 1, 1, 0, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
@@ -73,6 +70,26 @@ int N3[8][8] = {
     {0, 0, 0, 0, 0, 1, 1, 0},
     {0, 1, 1, 1, 1, 1, 1, 0},
     {0, 0, 1, 1, 1, 1, 0, 0}};
+switch (input)
+{case '1':
+memcpy(display, N1, 8*8*sizeof(int));
+break;
+case '2':
+memcpy(display, N2, 8*8*sizeof(int));
+break;
+case '3':
+memcpy(display, N3, 8*8*sizeof(int));
+break;
+case 'S':
+memcpy(display, Star, 8*8*sizeof(int));
+break;
+case 'E':
+memcpy(display, End, 8*8*sizeof(int));
+break;
+}
+
+(duration> 0)? LM.Symbol(display, duration) : LM.Symbol(display);
+};
 
 int display[8][8] = {{0}};
 
@@ -296,23 +313,11 @@ void refreshMem()
 }
 
 // Function to update display based on memory
-void MemtoDisplay()
+void MemtoDisplay(unsigned long delay)
 {
-    // Update display based on memory state
-    for (int i = 0; i < 8; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (memory[i][j][2] != 0)
-            {
-                display[i][j] = 1; // Snake or food present at this position
-            }
-            else
-            {
-                display[i][j] = 0; // Empty space
-            }
-        }
-    }
+int display [8][8] = {{0}};
+ memcpy(display, memory, 8*8*sizeof(int));
+(delay > 0)?LM.Symbol(display, delay): Lm.Symbol(display);
 }
 
 // Function to handle end of game animation
@@ -325,22 +330,10 @@ void ending()
         delay(100);
     }
 
-    // Retract snake from tail to head
-    for (int c = length; c > 0; c--)
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                if (memory[i][j][2] == c)
-                {
-                    memory[i][j][2] = 0;     // Clear snake position
-                    MemtoDisplay();          // Update display
-                    LM.Symbol(display, 250); // Display updated state
-                }
-            }
-        }
-    }
+for(int c = length;c>0 ; c--)
+{memory [body[c][0]][body[c][1]][2] = 0;
+MemtoDisplay(250);
+}
 
     // Display end game message
     if (!win)
@@ -361,9 +354,9 @@ void ending()
 void setup()
 {
     // Initialize LEDMatrix with countdown
-    LM.Symbol(N3); // Countdown 3
-    LM.Symbol(N2); // Countdown 2
-    LM.Symbol(N1); // Countdown 1
+   ShowSymbol('3'); // Countdown 3
+   ShowSymbol('2'); // Countdown 2
+   ShowSymbol('1'); // Countdown 1
 
     randomSeed(analogRead(A4)); // Initialize random seed
 
