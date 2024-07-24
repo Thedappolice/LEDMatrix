@@ -101,7 +101,7 @@ void ShowSymbol(char input, unsigned long duration = 0)
         memcpy(display, End, 8 * 8 * sizeof(int));
         break;
     }
-
+    
     (duration > 0) ? LM.Symbol(display, duration) : LM.Symbol(display);
 };
 

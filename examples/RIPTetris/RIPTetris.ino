@@ -7,18 +7,18 @@ int digitPins[] = {10, 11, 12, 13};
 int segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int scoreOut[] = {-1, -1, -1, 0};
 
-#define ROTATE_PIN 1
-#define LEFT_PIN 2
-#define RIGHT_PIN 3
-#define DOWN_PIN 4
+#define ROTATE_PIN 34
+#define LEFT_PIN 35
+#define RIGHT_PIN 36
+#define DOWN_PIN 37
 #include <LEDMatrix.h>
 
 // Pin configurations of 1st Led matrix
 const int posPintop[] = {2, 3, 4, 5, 6, 7, 8, 9};
-const int negPintop[] = {10, 11, 12, 13, A0, A1, A2, A3};
+const int negPintop[] = {10, 11, 12, 13, 14, 15, 16, 17};
 // Pin configurations of 2nd Led matrix
-const int posPinbot[] = {2, 3, 4, 5, 6, 7, 8, 9};
-const int negPinbot[] = {10, 11, 12, 13, A0, A1, A2, A3};
+const int posPinbot[] = {18, 19, 20, 21, 22, 23, 24, 25};
+const int negPinbot[] = {26, 27, 28, 29, 30, 31, 32, 33};
 
 // Initialize LEDMatrix instance
 LEDMatrix LMtop(posPintop, 8, negPintop, 8);
@@ -36,18 +36,6 @@ int stableMemory[height][width] = {{0}};
 int topLM[width][width] = {{0}};
 int botLM[width][width] = {{0}};
 
-// tetrinominoes (shapes) in (x, y)
-const int J[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, 1}};
-const int L[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, -1}};
-const int S[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {-1, -1}};
-const int Z[4][2] = {{3, 0}, {-1, 0}, {-1, 0}, {1, -1}};
-const int T[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {0, -1}};
-const int O[4][2] = {{3, 0}, {-1, 0}, {1, 0}, {-1, -1}};
-const int I[4][2] = {{3, 0}, {0, 1}, {0, -1}, {0, -2}};
-
-// pointer array for the shapes
-int (*shapes[7])[4][2] = {&L, &J, &S, &Z, &T, &O, &I};
-
 // the shape in use in (x, y)
 int currentShape[4][2] = {{0}};
 
@@ -60,12 +48,22 @@ void genShape()
 {
     if (!gotShape)
     {
-        int(*selectedShape)[4][2] = shapes[random(0, 7)]; // take from the built in shapes
-        for (int i = 0; i < 4; i++)                       // copy the taken example
-        {
-            currentShape[i][0] = (*selectedShape)[i][0];
-            currentShape[i][1] = (*selectedShape)[i][1];
-        }
+        // Tetriminoes (shapes) in (x, y)
+        int J[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, 1}};
+        int L[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, -1}};
+        int S[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {-1, -1}};
+        int Z[4][2] = {{3, 0}, {-1, 0}, {-1, 0}, {1, -1}};
+        int T[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {0, -1}};
+        int O[4][2] = {{3, 0}, {-1, 0}, {1, 0}, {-1, -1}};
+        int I[4][2] = {{3, 0}, {0, 1}, {0, -1}, {0, -2}};
+
+        // Array of pointers to tetrimino shapes
+        int(*shapes[7])[2] = {J, L, S, Z, T, O, I};
+
+        // Select a random shape
+        int randomShapeIndex = random(0, 7);
+
+        memcpy(currentShape, shapes[randomShapeIndex], 4 * 2 * sizeof(int));
     }
 }
 
@@ -251,14 +249,12 @@ void scanAndClearGrid()
         {
             int rows = arrayCount + 1;              // rows cleared
             int newScore = score + pow(rows, rows); // add the score
-            
+
             if (score != newScore)
             {
                 score = newScore;
                 int numbers[4];
-                numbers[3] = score  
-                
-                
+                numbers[3] = score
             }
         }
     }
@@ -350,10 +346,9 @@ void EndorRun()
     }
 }
 
-void ending ()
+void ending()
 {
-dis.scan();
-
+    dis.scan();
 }
 
 void setup()
@@ -363,22 +358,22 @@ void setup()
 
 void loop()
 {
-if(!end)
-{
-    genShape();
+    if (!end)
+    {
+        genShape();
 
-    checkInput();
-    stabilizeShape();
-    checkInput(true);
-    stabilizeShape();
+        checkInput();
+        stabilizeShape();
+        checkInput(true);
+        stabilizeShape();
 
-    scanAndClearGrid();
-    gatherDisplay();
-    showDisplay();
-    EndorRun();
-}
-else
-{
-ending();
-}
+        scanAndClearGrid();
+        gatherDisplay();
+        showDisplay();
+        EndorRun();
+    }
+    else
+    {
+        ending();
+    }
 }
