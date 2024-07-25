@@ -63,6 +63,7 @@ void genShape()
         // Select a random shape
         int randomShapeIndex = random(0, 7);
 
+        // Copy the shape into currentShape
         memcpy(currentShape, shapes[randomShapeIndex], 4 * 2 * sizeof(int));
     }
 }

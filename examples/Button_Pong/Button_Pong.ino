@@ -221,7 +221,7 @@ void updateBall(Ball &ball)
       {
         ball.yDirPos = !ball.yDirPos;
       }
-      
+
       ball.y += ball.yDirPos ? 1 : -1;
 
       if (ball.x == 0 || ball.x == 7)
