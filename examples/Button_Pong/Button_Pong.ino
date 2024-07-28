@@ -16,6 +16,7 @@ LEDMatrix LM(POS_PIN, 8, NEG_PIN, 8);
 #define P2_LEFT A7
 #define P2_RIGHT A6
 
+
 struct Player
 {
   int shift;
