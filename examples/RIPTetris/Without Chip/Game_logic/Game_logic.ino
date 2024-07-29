@@ -1,9 +1,9 @@
 #include <LEDMatrix.h>
 
-#define ROTATE_PIN 34
-#define LEFT_PIN 35
-#define RIGHT_PIN 36
-#define DOWN_PIN 37
+#define LEFT_PIN 30
+#define RIGHT_PIN 31
+#define ROTATE_PIN 32
+#define DOWN_PIN 33
 
 // // Pin configurations of 1st Led matrix
 // const int posPintop[] = {2, 3, 4, 5, 6, 7, 8, 9};
@@ -16,8 +16,8 @@
 int posPintop[] = {37, 13, 16, 40, 23, 17, 22, 19};
 int negPintop[] = {41, 21, 20, 38, 18, 39, 14, 15};
 // Pin configurations of 2nd Led matrix
-int posPinbot[] = {9, 1, 28, 6, 10, 27, 11, 25};
-int negPinbot[] = {5, 12, 24, 8, 26, 7, 3, 2};
+int posPinbot[] = {9, 1, 29, 6, 10, 28, 11, 26};
+int negPinbot[] = {5, 12, 25, 8, 27, 7, 3, 2};
 
 // Initialize LEDMatrix instance
 LEDMatrix LMtop(posPintop, 8, negPintop, 8);
@@ -32,8 +32,8 @@ int displayMemory[height][width] = {{0}};
 int stableMemory[height][width] = {{0}};
 
 // arrays for top and bottom led matrix
-int topLM[width][width] = {{0}};
 int botLM[width][width] = {{0}};
+int topLM[width][width] = {{0}};
 
 // the shape in use in (x, y)
 int currentShape[4][2] = {{0}};
@@ -50,13 +50,13 @@ void genShape()
     if (!gotShape)
     {
         // Tetriminoes (shapes) in (x, y)
-        int J[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, 1}};
-        int L[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, -1}};
-        int S[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {-1, -1}};
-        int Z[4][2] = {{3, 0}, {-1, 0}, {-1, 0}, {1, -1}};
-        int T[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {0, -1}};
-        int O[4][2] = {{3, 0}, {-1, 0}, {1, 0}, {-1, -1}};
-        int I[4][2] = {{3, 0}, {0, 1}, {0, -1}, {0, -2}};
+        int J[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {1, 1}};
+        int L[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {1, -1}};
+        int S[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {-1, -1}};
+        int Z[4][2] = {{3, 3}, {-1, 0}, {-1, 0}, {1, -1}};
+        int T[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {0, -1}};
+        int O[4][2] = {{3, 3}, {-1, 0}, {1, 0}, {-1, -1}};
+        int I[4][2] = {{3, 3}, {0, 1}, {0, -1}, {0, -2}};
 
         // Array of pointers to tetrimino shapes
         int(*shapes[7])[2] = {J, L, S, Z, T, O, I};
@@ -66,6 +66,8 @@ void genShape()
 
         // Copy the shape into currentShape
         memcpy(currentShape, shapes[randomShapeIndex], 4 * 2 * sizeof(int));
+
+        gotShape = true;
     }
 };
 
@@ -256,37 +258,20 @@ void scanAndClearGrid()
 
 void gatherDisplay()
 {
-    for (int i = 0; i < height; i++) // clear grid
-    {
-        for (int j = 0; j < width; j++)
-        {
-            displayMemory[i][j] = 0;
-        }
-    }
-
-    for (int i = 0; i < height; i++) // light all existing stable coordinates
-    {
-        for (int j = 0; j < width; j++)
-        {
-            if (stableMemory[i][j] == 1)
-            {
-                displayMemory[i][j] = 1;
-            }
-        }
-    }
+    memcpy(displayMemory, stableMemory, height * width * sizeof(int));
 
     for (int i = 0; i < 4; i++) // light the moving shape
     {
         if (i == 0)
         {
-            displayMemory[currentShape[i][0]][currentShape[i][1]] = 1;
+            displayMemory[currentShape[i][1]][currentShape[i][0]] = 1;
         }
         else
         {
-            displayMemory[currentShape[0][0] + currentShape[i][0]][currentShape[0][1] + currentShape[i][1]] = 1;
+            displayMemory[currentShape[0][1] + currentShape[i][1]][currentShape[0][0] + currentShape[i][0]] = 1;
         }
     }
-}
+};
 
 void showDisplay()
 {
@@ -294,13 +279,13 @@ void showDisplay()
     {
         for (int j = 0; j < width; j++)
         {
-            if (i < width) // update the top LM
+            if (i < height / 2) // update the top LM
             {
                 topLM[i][j] = displayMemory[i][j];
             }
             else // update the bottom LM
             {
-                botLM[i - width][j] = displayMemory[i][j];
+                botLM[i - height / 2][j] = displayMemory[i][j];
             }
         }
     }
@@ -308,25 +293,19 @@ void showDisplay()
 
 void EndorRun()
 {
-    if (!end) // if not ending
+    if (!end)
     {
-        unsigned long interval = 200;
-        unsigned long prev = millis();
-        while (millis() - prev < interval) // refresh according to interval
-        {
-            LMtop.Symbol(topLM);
-            LMbot.Symbol(botLM);
-        }
+        LMtop.Symbol(topLM, 10);
+        LMbot.Symbol(botLM, 10);
     }
-    else // ending
+    else
     {
-        for (int i = 0; i < 5; i++) // blink the entire display 5 times
+        for (int i = 0; i < 5; i++)
         {
             LMtop.Symbol(topLM);
             LMbot.Symbol(botLM);
         }
-
-        for (int i = height - 1; i > -1; i--) // delete and show the entire display
+        for (int i = height - 1; i > -1; i--)
         {
             for (int j = width - 1; i > -1; i--)
             {
@@ -335,7 +314,7 @@ void EndorRun()
             }
         }
     }
-};
+}
 
 void setup()
 {
@@ -348,12 +327,23 @@ void loop()
     genShape();
 
     checkInput();
+    Serial.println(command);
     stabilizeShape();
-    checkInput(true);
-    stabilizeShape();
+    // checkInput(true);
+    // stabilizeShape();
 
-    scanAndClearGrid();
+    // scanAndClearGrid();
     gatherDisplay();
+    // for (int i = 0; i < height; i++) {
+    //   for (int j = 0; j < width; j++) {
+    //     if (displayMemory[i][j] == 1) {
+    //       Serial.print("[  ]");
+    //     } else {
+    //       Serial.print(" __ ");
+    //     }
+    //   }
+    //   Serial.println("");
+    // }
     showDisplay();
     EndorRun();
 }
