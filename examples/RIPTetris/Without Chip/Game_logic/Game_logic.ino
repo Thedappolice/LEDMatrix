@@ -43,6 +43,8 @@ bool gotShape = false;
 int command = -2;
 bool end = false;
 
+bool inputted = false;
+
 int score = 0;
 
 void genShape()
@@ -171,27 +173,40 @@ void checkInput(int forced = false) // check and identify the input command
     bool downState = digitalRead(DOWN_PIN) == HIGH;
     bool rotateState = digitalRead(ROTATE_PIN) == HIGH;
 
-    if (downState || forced)
+    if (forced)
     {
         command = 0;
+        return;
     }
-    else if (rotateState)
+    if (!inputted)
     {
-        command = 2;
+        if (downState || rotateState || leftState || rightState)
+        {
+            if (downState)
+            {
+                command = 0;
+            }
+            else if (rotateState)
+            {
+                command = 2;
+            }
+            else if (leftState)
+            {
+                command = -1;
+            }
+            else if (rightState)
+            {
+                command = 1;
+            }
+            inputted = true;
+        }
     }
-    else if (leftState)
-    {
-        command = -1;
-    }
-    else if (rightState)
-    {
-        command = 1;
-    }
-    else
+    else if (!leftState && !rightState && !rotateState && !downState)
     {
         command = -2;
+        inputted = false;
     }
-}
+};
 
 void scanAndClearGrid()
 {
@@ -318,32 +333,34 @@ void EndorRun()
 
 void setup()
 {
+    for (int i = 30; i < 34; i++)
+    {
+        pinMode(i, INPUT);
+    }
     randomSeed(analogRead(A10));
-    Serial.begin(9600);
+    Serial.begin(500);
 }
 
 void loop()
 {
     genShape();
-
     checkInput();
-    Serial.println(command);
     stabilizeShape();
-    // checkInput(true);
-    // stabilizeShape();
+    // // checkInput(true);
+    // // stabilizeShape();
 
-    // scanAndClearGrid();
+    // // scanAndClearGrid();
     gatherDisplay();
-    // for (int i = 0; i < height; i++) {
-    //   for (int j = 0; j < width; j++) {
-    //     if (displayMemory[i][j] == 1) {
-    //       Serial.print("[  ]");
-    //     } else {
-    //       Serial.print(" __ ");
-    //     }
-    //   }
-    //   Serial.println("");
-    // }
+    // // for (int i = 0; i < height; i++) {
+    // //   for (int j = 0; j < width; j++) {
+    // //     if (displayMemory[i][j] == 1) {
+    // //       Serial.print("[  ]");
+    // //     } else {
+    // //       Serial.print(" __ ");
+    // //     }
+    // //   }
+    // //   Serial.println("");
+    // // }
     showDisplay();
     EndorRun();
 }

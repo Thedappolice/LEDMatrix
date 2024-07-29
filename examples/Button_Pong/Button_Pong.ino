@@ -164,8 +164,8 @@ void fasterBall(Ball &ball)
 
 void checkButton(Player &player)
 {
-  bool leftState = digitalRead(player.leftPin);
-  bool rightState = digitalRead(player.rightPin);
+  bool leftState = digitalRead(player.leftPin) == HIGH;
+  bool rightState = digitalRead(player.rightPin) == HIGH;
 
   if (!player.changed)
   {
