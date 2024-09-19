@@ -49,8 +49,8 @@ void genShape()
     if (!gotShape)
     {
         // Tetriminoes (shapes) in (x, y)
-        int J[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, 1}};
-        int L[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, -1}};
+        int J[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, -1}};
+        int L[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {1, 1}};
         int S[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {-1, -1}};
         int Z[4][2] = {{3, 0}, {-1, 0}, {-1, 0}, {1, -1}};
         int T[4][2] = {{3, 0}, {1, 0}, {-1, 0}, {0, -1}};
@@ -72,11 +72,12 @@ void stabilizeShape()
 {
     if (command == 2) // rotate command
     {
-        for (int i = 1; i < 4; i++) // flip and negate the relative coordinates of each section of shape
+        for (int i = 1; i < 4; i++)
         {
-            int rmb = currentShape[i][0];                 // remember the x coordinate
-            currentShape[i][0] = currentShape[i][1] * -1; // update x coordinate with negated version of y
-            currentShape[i][1] = rmb * -1;                // update y with negated x
+            // Flip and negate the relative coordinates for a 90-degree clockwise rotation
+            int temp = currentShape[i][0];
+            currentShape[i][0] = currentShape[i][1];
+            currentShape[i][1] = -temp;
         }
     }
     int shapeCoordinates[4][2]; // in (y, x)
@@ -95,7 +96,7 @@ void stabilizeShape()
         }
     }
 
-    if (command == 2)
+    if (command == 2) // fix rotate error
     {
         int error = 0;
         for (int i = 0; i < 4; i++)
