@@ -46,13 +46,13 @@ void genShape()
     if (!gotShape)
     {
         // Tetriminoes (shapes) in (y, x)
-        int J[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {1, -1}};
-        int L[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {1, 1}};
-        int S[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {-1, -1}};
-        int Z[4][2] = {{3, 3}, {-1, 0}, {-1, 0}, {1, -1}};
-        int T[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {0, -1}};
-        int O[4][2] = {{3, 3}, {-1, 0}, {1, 0}, {-1, -1}};
-        int I[4][2] = {{3, 3}, {0, 1}, {0, -1}, {0, -2}};
+        int J[4][2] = {{0, 3}, {1, 1}, {0, 1}, {0, -1}};
+        int L[4][2] = {{0, 3}, {1, -1}, {0, 1}, {0, -1}};
+        int S[4][2] = {{0, 3}, {0, 1}, {1, 0}, {1, -1}};
+        int Z[4][2] = {{0, 3}, {0, -1}, {1, 0}, {1, 1}};
+        int T[4][2] = {{0, 3}, {0, 1}, {1, 0}, {1, -1}};
+        int O[4][2] = {{0, 3}, {1, 0}, {0, 1}, {1, 1}};
+        int I[4][2] = {{0, 3}, {0, 1}, {0, -1}, {0, -2}};
 
         // Array of pointers to tetrimino shapes
         int(*shapes[7])[2] = {J, L, S, Z, T, O, I};
@@ -82,8 +82,8 @@ void alterShape(int req)
         }
         else
         {
-            shapeCoordinates[i][0] = currentShape[0][0] + currentShape[i][1];
-            shapeCoordinates[i][1] = currentShape[0][1] + currentShape[i][0];
+            shapeCoordinates[i][0] = currentShape[0][0] + currentShape[i][0];
+            shapeCoordinates[i][1] = currentShape[0][1] + currentShape[i][1];
         }
     }
 
@@ -94,7 +94,6 @@ void alterShape(int req)
         {
             stableMemory[shapeCoordinates[i][0]][shapeCoordinates[i][1]] = 1;
         }
-        // Serial.println("record is ran");
         break;
 
     case 1:               // Shifting (left/right)
@@ -111,7 +110,6 @@ void alterShape(int req)
         {
             currentShape[0][0] = currentShape[0][0] + command; // Shift if possible
         }
-        // Serial.println("shift is ran");
         break;
 
     case 2: // Move downwards
@@ -121,7 +119,6 @@ void alterShape(int req)
             { // If one section's below is already registered as 1 or the section hits the ground
                 alterShape(0);
                 gotShape = false; // Shape has been used up
-                // Serial.println("Shape gone");
                 break;
             }
         }
@@ -130,7 +127,6 @@ void alterShape(int req)
         {
             currentShape[0][0]++;
         }
-        // Serial.println("down is ran");
         break;
 
     case 3: // rotating
@@ -142,9 +138,8 @@ void alterShape(int req)
         }
 
         bool rotate = true;
-        for (int i = 1; i < 4; i++)
+        for (int i = 1; i < 4; i++) // Flip and negate the relative coordinates for a 90-degree clockwise rotation
         {
-            // Flip and negate the relative coordinates for a 90-degree clockwise rotation
             int temp = currentShape[i][0];
             currentShape[i][0] = currentShape[i][1];
             currentShape[i][1] = -temp;
@@ -216,10 +211,16 @@ void checkInput(int forced = false) // check and identify the input command
         alterShape(3);
         break;
     }
+
+    if (!gotShape)
+    {
+        // scanAndClearGrid();
+    }
 }
 
 void scanAndClearGrid()
 {
+
     for (int i = 0; i < 3; i++) // checking at illegal zone, LOSING FACTOR
     {
         for (int j = 0; j < width; j++) // Check the rest of the row
@@ -266,11 +267,11 @@ void scanAndClearGrid()
             }
         }
 
-        for (int i = fullRows[0]; i > 0; i--)
+        for (int i = fullRows[0]; i > 0; i--)// bring the rest of the rows downwards
         {
             for (int j = 0; j < width; j++)
             {
-                stableMemory[i][j] = stableMemory[i - 1][j]; // bring the rest of the rows downwards
+                stableMemory[i][j] = stableMemory[i - 1][j]; 
             }
         }
 
@@ -278,37 +279,24 @@ void scanAndClearGrid()
         {
             int clearedRows = arrayCount + 1;         // rows cleared
             score += (pow(clearedRows, clearedRows)); // add the score
-            Serial.println(score);                    //
+            Serial.println(score);                    // send score
         }
     }
 }
 
 void gatherThenShowDisplay(bool skip = false)
 {
+    // gather output
     if (!skip)
     {
         memcpy(displayMemory, stableMemory, sizeof(stableMemory));
-        for (int i = 0; i < checkingHeight; i++)
-        {
-            for (int j = 0; j < width; j++)
-            {
-                if (stableMemory[i][j] == 1)
-                {
-                    Serial.print("[/]");
-                }
-                else
-                {
-                    Serial.print("[ ]");
-                }
-            }
-            Serial.println();
-        }
         for (int i = 0; i < 4; i++)
         {
             displayMemory[shapeCoordinates[i][0]][shapeCoordinates[i][1]] = 1;
         }
     }
 
+    // outputdisplay onto matrix
     for (int i = 0; i < checkingHeight - 2; i++)
     {
         for (int j = 0; j < width; j++)
@@ -339,20 +327,20 @@ void EndorRun()
     }
     else // ending
     {
-        for (int i = 0; i < 5; i++) // blink the entire display 5 times
-        {
-            LMtop.Symbol(topLM);
-            LMbot.Symbol(botLM);
-        }
+        // for (int i = 0; i < 5; i++)  // blink the entire display 5 times
+        // {
+        //   LMtop.Symbol(topLM);
+        //   LMbot.Symbol(botLM);
+        // }
 
-        for (int i = height - 1; i > -1; i--) // delete and show the entire display
-        {
-            for (int j = width - 1; j > -1; j--) // Correct loop counter
-            {
-                displayMemory[i][j] = 0;
-                gatherThenShowDisplay(true);
-            }
-        }
+        // for (int i = height - 1; i > -1; i--)  // delete and show the entire display
+        // {
+        //   for (int j = width - 1; j > -1; j--)  // Correct loop counter
+        //   {
+        //     displayMemory[i][j] = 0;
+        //     gatherThenShowDisplay(true);
+        //   }
+        // }
     }
 }
 
@@ -360,19 +348,6 @@ void setup()
 {
     randomSeed(analogRead(24));
     Serial.begin(500);
-    // genShape();
-
-    // // checkInput();
-    // for (int i = 0; i < 10; i++) {
-    //   if (gotShape) {
-    //     checkInput(true);
-    //   }
-    //   gatherThenShowDisplay();
-    //   EndorRun();
-    // }
-    // alterShape(0);
-    // gatherThenShowDisplay();
-    // EndorRun();
 }
 
 void loop()
@@ -388,7 +363,6 @@ void loop()
             checkInput(true);
         }
 
-        // scanAndClearGrid();
         gatherThenShowDisplay();
         EndorRun();
     }
