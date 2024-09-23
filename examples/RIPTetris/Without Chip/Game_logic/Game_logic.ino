@@ -267,11 +267,11 @@ void scanAndClearGrid()
             }
         }
 
-        for (int i = fullRows[0]; i > 0; i--)// bring the rest of the rows downwards
+        for (int i = fullRows[0]; i > 0; i--) // bring the rest of the rows downwards
         {
             for (int j = 0; j < width; j++)
             {
-                stableMemory[i][j] = stableMemory[i - 1][j]; 
+                stableMemory[i][j] = stableMemory[i - 1][j];
             }
         }
 
