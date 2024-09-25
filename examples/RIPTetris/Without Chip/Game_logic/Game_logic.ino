@@ -1,10 +1,10 @@
 bool scoring = true;
 int score = 0;
 
-#define ROTATE_PIN 34
-#define LEFT_PIN 35
-#define RIGHT_PIN 36
-#define DOWN_PIN 37
+#define ROTATE_PIN 31
+#define LEFT_PIN 32
+#define RIGHT_PIN 33
+#define DOWN_PIN 30
 #include <LEDMatrix.h>
 
 // Pin configurations of 1st Led matrix
@@ -40,6 +40,8 @@ int shapeCoordinates[4][2]; // in (y, x)
 bool gotShape = false;
 int command = -2;
 bool end = false;
+unsigned long interval = 500;
+unsigned long prev = 0;
 
 void genShape()
 {
@@ -193,6 +195,20 @@ void checkInput(int forced = false) // check and identify the input command
         command = -2;
     }
 
+    // // Print the states separately
+    // Serial.print("leftState(32) : ");
+    // Serial.println(leftState);
+
+    // Serial.print("rightState(33) : ");
+    // Serial.println(rightState);
+
+    // Serial.print("downState(30) : ");
+    // Serial.println(downState);
+
+    // Serial.print("rotateState(31) : ");
+    // Serial.println(rotateState);
+
+    // Serial.println("-----------------------------------");
     switch (command)
     {
     case 0: // natural downwards command
@@ -317,8 +333,7 @@ void EndorRun()
 {
     if (!end) // if not ending
     {
-        unsigned long interval = 500;
-        unsigned long prev = millis();
+        prev = millis();
         while (millis() - prev < interval) // refresh according to interval
         {
             LMtop.Symbol(topLM, 2);
@@ -329,8 +344,8 @@ void EndorRun()
     {
         // for (int i = 0; i < 5; i++)  // blink the entire display 5 times
         // {
-        //   LMtop.Symbol(topLM);
-        //   LMbot.Symbol(botLM);
+        //   LMtop.Symbol(topLM, 4);
+        //   LMbot.Symbol(botLM, 4);
         // }
 
         // for (int i = height - 1; i > -1; i--)  // delete and show the entire display
@@ -348,6 +363,10 @@ void setup()
 {
     randomSeed(analogRead(24));
     Serial.begin(500);
+    for (int i = 30; i < 34; i++)
+    {
+        pinMode(i, INPUT);
+    }
 }
 
 void loop()
@@ -356,15 +375,16 @@ void loop()
     {
         genShape();
 
-        // checkInput();
+        checkInput();
+        gatherThenShowDisplay();
+        EndorRun();
 
         if (gotShape)
         {
             checkInput(true);
+            gatherThenShowDisplay();
+            EndorRun();
         }
-
-        gatherThenShowDisplay();
-        EndorRun();
     }
     else
     {
