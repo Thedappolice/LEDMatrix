@@ -40,7 +40,7 @@ int shapeCoordinates[4][2]; // in (y, x)
 bool gotShape = false;
 int command = -2;
 bool end = false;
-unsigned long interval = 500;
+unsigned long interval = 300;
 unsigned long prev = 0;
 
 void genShape()
@@ -110,7 +110,7 @@ void alterShape(int req)
         }
         if (shiftable)
         {
-            currentShape[0][0] = currentShape[0][0] + command; // Shift if possible
+            currentShape[0][1] = currentShape[0][1] + command; // Shift if possible
         }
         break;
 
@@ -195,20 +195,6 @@ void checkInput(int forced = false) // check and identify the input command
         command = -2;
     }
 
-    // // Print the states separately
-    // Serial.print("leftState(32) : ");
-    // Serial.println(leftState);
-
-    // Serial.print("rightState(33) : ");
-    // Serial.println(rightState);
-
-    // Serial.print("downState(30) : ");
-    // Serial.println(downState);
-
-    // Serial.print("rotateState(31) : ");
-    // Serial.println(rotateState);
-
-    // Serial.println("-----------------------------------");
     switch (command)
     {
     case 0: // natural downwards command
@@ -358,7 +344,6 @@ void EndorRun()
         // }
     }
 }
-
 void setup()
 {
     randomSeed(analogRead(24));
@@ -391,3 +376,5 @@ void loop()
         Serial.println(score);
     }
 }
+
+// add in speed up system
