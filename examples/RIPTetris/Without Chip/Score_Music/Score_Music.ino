@@ -92,5 +92,5 @@ void setup()
 void loop()
 {
     playSong();
-    checkScore();
+    updateScoreDisplay();
 }

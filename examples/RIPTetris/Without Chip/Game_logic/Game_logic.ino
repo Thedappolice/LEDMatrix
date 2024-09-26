@@ -40,12 +40,17 @@ int shapeCoordinates[4][2]; // in (y, x)
 bool gotShape = false;
 int command = -2;
 bool end = false;
+
 unsigned long interval = 500;
 unsigned long prev = 0;
+
 int lastButtonState = 0;
 
 unsigned long lastRotateTime = 0;   // Timestamp for the last rotation
 unsigned long rotateInterval = 300; // Interval for rotation (in milliseconds)
+
+unsigned long lastInputTime = 0;
+unsigned long inputInterval = 100; // Adjust this based on how frequently you want to check input
 
 void genShape()
 {
@@ -288,7 +293,7 @@ void scanAndClearGrid()
         {
             int clearedRows = arrayCount + 1;         // rows cleared
             score += (pow(clearedRows, clearedRows)); // add the score
-            sendSCore(score);
+            sendScore(score);
         }
     }
 }
@@ -357,23 +362,21 @@ void EndorRun()
 
 void sendScore(int score)
 {
-    Serial.write(lowByte(score));  // Send lower byte of 9999
-    Serial.write(highByte(score)); // Send upper byte of 9999
+    Serial3.write(lowByte(score));  // Send lower byte of 9999
+    Serial3.write(highByte(score)); // Send upper byte of 9999
 }
 
 void setup()
 {
     randomSeed(analogRead(24));
-    Serial.begin(500);
+    Serial.begin(9600);
+    Serial3.begin(9600);
 
     for (int i = 30; i < 34; i++)
     {
         pinMode(i, INPUT);
     }
 }
-
-unsigned long lastInputTime = 0;
-unsigned long inputInterval = 100; // Adjust this based on how frequently you want to check input
 
 void loop()
 {
