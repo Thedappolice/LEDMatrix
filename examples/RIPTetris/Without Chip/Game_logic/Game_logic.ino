@@ -40,8 +40,12 @@ int shapeCoordinates[4][2]; // in (y, x)
 bool gotShape = false;
 int command = -2;
 bool end = false;
-unsigned long interval = 300;
+unsigned long interval = 500;
 unsigned long prev = 0;
+int lastButtonState = 0;
+
+unsigned long lastRotateTime = 0;   // Timestamp for the last rotation
+unsigned long rotateInterval = 300; // Interval for rotation (in milliseconds)
 
 void genShape()
 {
@@ -129,6 +133,10 @@ void alterShape(int req)
         {
             currentShape[0][0]++;
         }
+        else
+        {
+            scanAndClearGrid();
+        }
         break;
 
     case 3: // rotating
@@ -162,62 +170,62 @@ void alterShape(int req)
                 currentShape[i][1] = tempRelative[i - 1][1];
             }
         }
-        // Serial.println("rotate is ran");
         break;
     }
 }
 
-void checkInput(int forced = false) // check and identify the input command
+
+// Function to get the combined state of all buttons
+int getButtonState()
 {
-    bool leftState = digitalRead(LEFT_PIN) == HIGH;
-    bool rightState = digitalRead(RIGHT_PIN) == HIGH;
-    bool downState = digitalRead(DOWN_PIN) == HIGH;
-    bool rotateState = digitalRead(ROTATE_PIN) == HIGH;
+    int state = 0;
+    if (digitalRead(LEFT_PIN) == HIGH)
+        state |= (1 << 0); // Set bit 0 for LEFT_PIN
+    if (digitalRead(RIGHT_PIN) == HIGH)
+        state |= (1 << 1); // Set bit 1 for RIGHT_PIN
+    if (digitalRead(DOWN_PIN) == HIGH)
+        state |= (1 << 2); // Set bit 2 for DOWN_PIN
+    if (digitalRead(ROTATE_PIN) == HIGH)
+        state |= (1 << 3); // Set bit 3 for ROTATE_PIN
+    return state;
+}
 
-    if (downState || forced)
+void checkInput()
+{
+    int currentButtonState = getButtonState(); // Get current button states
+
+    // Check for any change in the button state
+    if (currentButtonState != lastButtonState)
     {
-        command = 0;
-    }
-    else if (rotateState)
-    {
-        command = 2;
-    }
-    else if (leftState)
-    {
-        command = -1;
-    }
-    else if (rightState)
-    {
-        command = 1;
-    }
-    else
-    {
-        command = -2;
+        // Determine which button has been pressed
+        if (currentButtonState & (1 << 0) && !(lastButtonState & (1 << 0)))
+        {                  // LEFT pressed
+            command = -1;  // Move left
+            alterShape(1); // Perform the action
+        }
+        else if (currentButtonState & (1 << 1) && !(lastButtonState & (1 << 1)))
+        {                // RIGHT pressed
+            command = 1; // Move right
+            alterShape(1);
+        }
+        else if (currentButtonState & (1 << 2) && !(lastButtonState & (1 << 2)))
+        {                // DOWN pressed
+            command = 0; // Move down
+            alterShape(2);
+        }
+        else if (currentButtonState & (1 << 3) && !(lastButtonState & (1 << 3)))
+        { // ROTATE pressed
+            // Check if enough time has passed since the last rotation
+            if (millis() - lastRotateTime >= rotateInterval)
+            {
+                command = 2; // Rotate
+                alterShape(3);
+                lastRotateTime = millis(); // Update the last rotation time
+            }
+        }
     }
 
-    switch (command)
-    {
-    case 0: // natural downwards command
-        alterShape(2);
-        break;
-
-    case 1: // right shift
-        alterShape(1);
-        break;
-
-    case -1: // left shift
-        alterShape(1);
-        break;
-
-    case 2: // rotate
-        alterShape(3);
-        break;
-    }
-
-    if (!gotShape)
-    {
-        // scanAndClearGrid();
-    }
+    lastButtonState = currentButtonState; // Update last state
 }
 
 void scanAndClearGrid()
@@ -319,11 +327,14 @@ void EndorRun()
 {
     if (!end) // if not ending
     {
-        prev = millis();
-        while (millis() - prev < interval) // refresh according to interval
+        if (millis() - prev < interval) // refresh according to interval
         {
             LMtop.Symbol(topLM, 2);
             LMbot.Symbol(botLM, 2);
+        }
+        else
+        {
+            prev = millis();
         }
     }
     else // ending
@@ -344,32 +355,41 @@ void EndorRun()
         // }
     }
 }
+
 void setup()
 {
     randomSeed(analogRead(24));
     Serial.begin(500);
+
     for (int i = 30; i < 34; i++)
     {
         pinMode(i, INPUT);
     }
 }
 
+unsigned long lastInputTime = 0;
+unsigned long inputInterval = 100; // Adjust this based on how frequently you want to check input
+
 void loop()
 {
     if (!end)
     {
+        // Generate shape if none
         genShape();
 
+        // Check inputs with edge detection (instant response after release)
         checkInput();
+
+        // Main game logic (running on its own timing)
+        if (millis() - prev >= interval)
+        {
+            prev = millis();
+            alterShape(2); // Move down by default
+        }
+
+        // Update display
         gatherThenShowDisplay();
         EndorRun();
-
-        if (gotShape)
-        {
-            checkInput(true);
-            gatherThenShowDisplay();
-            EndorRun();
-        }
     }
     else
     {
