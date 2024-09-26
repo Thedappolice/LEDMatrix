@@ -174,7 +174,6 @@ void alterShape(int req)
     }
 }
 
-
 // Function to get the combined state of all buttons
 int getButtonState()
 {
@@ -289,7 +288,7 @@ void scanAndClearGrid()
         {
             int clearedRows = arrayCount + 1;         // rows cleared
             score += (pow(clearedRows, clearedRows)); // add the score
-            Serial.println(score);                    // send score
+            sendSCore(score);
         }
     }
 }
@@ -354,6 +353,12 @@ void EndorRun()
         //   }
         // }
     }
+}
+
+void sendScore(int score)
+{
+    Serial.write(lowByte(score));  // Send lower byte of 9999
+    Serial.write(highByte(score)); // Send upper byte of 9999
 }
 
 void setup()

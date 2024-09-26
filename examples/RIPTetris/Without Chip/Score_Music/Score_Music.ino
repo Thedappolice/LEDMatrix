@@ -53,29 +53,35 @@ void playSong()
     }
 }
 
-void checkScore()
+void updateScoreDisplay()
 {
-    if (Serial.available() > 0)
+    if (Serial.available() >= 2) // Ensure we have at least 2 bytes to read
     {
-        int input = Serial.parseInt(); // Read the score sent by the Teensy
+        byte low = Serial.read();  // Read the low byte
+        byte high = Serial.read(); // Read the high byte
 
-        // Fill the array with digits from right to left
+        // Reconstruct the full integer (16-bit value)
+        int input = word(high, low); // Combine the high and low byte to get the original score
+
+        // Fill the array with digits from right to left (thousands, hundreds, tens, units)
         for (int i = 3; i >= 0; i--)
         {
             score[i] = input % 10; // Get the last digit
             input /= 10;           // Remove the last digit from input
         }
 
-        // Check for stray 0s and replace with -1
+        // Handle leading zeros by replacing them with -1 to leave the digit blank
         for (int i = 0; i < 3; i++)
         {
             if (score[i] == 0 && (i == 0 || score[i - 1] == -1))
             {
-                score[i] = -1;
+                score[i] = -1; // Set leading zeroes to -1 (blank)
             }
         }
     }
-    dis.scan(score); // refresh display with score
+
+    // Update the 7-segment display
+    dis.scan(score); // Refresh display with updated score
 }
 
 void setup()
