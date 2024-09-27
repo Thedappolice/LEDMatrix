@@ -362,15 +362,16 @@ void EndorRun()
 
 void sendScore(int score)
 {
-    Serial3.write(lowByte(score));  // Send lower byte of 9999
-    Serial3.write(highByte(score)); // Send upper byte of 9999
+    Serial8.write(lowByte(score));  // Send the lower byte
+    Serial8.write(highByte(score)); // Send the upper byte
 }
 
 void setup()
 {
     randomSeed(analogRead(24));
+    
     Serial.begin(9600);
-    Serial3.begin(9600);
+    Serial8.begin(9600);
 
     for (int i = 30; i < 34; i++)
     {

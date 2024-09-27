@@ -57,8 +57,9 @@ void updateScoreDisplay()
 {
     if (Serial.available() >= 2) // Ensure we have at least 2 bytes to read
     {
-        byte low = Serial.read();  // Read the low byte
-        byte high = Serial.read(); // Read the high byte
+        // Read the low and high bytes
+        byte low = Serial.read();
+        byte high = Serial.read();
 
         // Reconstruct the full integer (16-bit value)
         int input = word(high, low); // Combine the high and low byte to get the original score
@@ -78,10 +79,10 @@ void updateScoreDisplay()
                 score[i] = -1; // Set leading zeroes to -1 (blank)
             }
         }
-    }
 
-    // Update the 7-segment display
-    dis.scan(score); // Refresh display with updated score
+        // Update the 7-segment display with the new score
+    }
+    dis.scan(score); // Refresh the display with updated score
 }
 
 void setup()
