@@ -63,6 +63,10 @@ void updateScoreDisplay()
 
         // Reconstruct the full integer (16-bit value)
         int input = word(high, low); // Combine the high and low byte to get the original score
+        if (input == 65535)
+        {
+            asm volatile("jmp 0");
+        }
 
         // Fill the array with digits from right to left (thousands, hundreds, tens, units)
         for (int i = 3; i >= 0; i--)

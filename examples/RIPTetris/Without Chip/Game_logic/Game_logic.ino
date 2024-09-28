@@ -1,6 +1,8 @@
 bool scoring = true;
 int score = 0;
 
+#define reset_pin 36
+
 #define ROTATE_PIN 31
 #define LEFT_PIN 32
 #define RIGHT_PIN 33
@@ -362,14 +364,20 @@ void EndorRun()
 
 void sendScore(int score)
 {
+
     Serial8.write(lowByte(score));  // Send the lower byte
     Serial8.write(highByte(score)); // Send the upper byte
+
+    if (score == 65535)
+    { // reset call
+        SCB_AIRCR = 0x05FA0004;
+    }
 }
 
 void setup()
 {
     randomSeed(analogRead(24));
-    
+
     Serial.begin(9600);
     Serial8.begin(9600);
 
@@ -381,6 +389,11 @@ void setup()
 
 void loop()
 {
+    if (digitalRead(reset_pin) == HIGH)
+    {
+        uint16_t resetSignal = 65535;
+        reset();
+    }
     if (!end)
     {
         // Generate shape if none
