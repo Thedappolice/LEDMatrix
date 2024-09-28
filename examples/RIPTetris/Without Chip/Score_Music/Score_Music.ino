@@ -67,7 +67,7 @@ void updateScoreDisplay()
         {
             asm volatile("jmp 0");
         }
-
+        
         // Fill the array with digits from right to left (thousands, hundreds, tens, units)
         for (int i = 3; i >= 0; i--)
         {
