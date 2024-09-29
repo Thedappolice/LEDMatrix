@@ -42,8 +42,10 @@ int shapeCoordinates[4][2]; // in (y, x)
 bool gotShape = false;
 int command = -2;
 bool end = false;
+bool ended = false;
 
-unsigned long interval = 500;
+// timing the game
+unsigned long interval = 500; // downwards interval
 unsigned long prev = 0;
 
 int lastButtonState = 0;
@@ -53,6 +55,64 @@ unsigned long rotateInterval = 300; // Interval for rotation (in milliseconds)
 
 unsigned long lastInputTime = 0;
 unsigned long inputInterval = 100; // Adjust this based on how frequently you want to check input
+
+void ShowSymbol(LEDMatrix &LM, char input, unsigned long duration = 0)
+{
+    int Matrix[8][8] = {{0}};
+    int End[8][8] = {
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {1, 1, 1, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 0, 0, 1, 0, 0, 1},
+        {1, 0, 0, 1, 0, 1, 1, 0},
+        {1, 1, 1, 1, 0, 1, 0, 1},
+        {0, 0, 0, 0, 0, 0, 0, 0}};
+    int N1[8][8] = {
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0}};
+    int N2[8][8] = {
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 0, 0, 1, 1, 0},
+        {0, 0, 0, 0, 1, 1, 1, 0},
+        {0, 0, 0, 1, 1, 1, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0}};
+    int N3[8][8] = {
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 0, 0, 0, 0, 1, 1, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 0, 0, 0, 0, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0}};
+    switch (input)
+    {
+    case '1':
+        memcpy(Matrix, N1, 8 * 8 * sizeof(int));
+        break;
+    case '2':
+        memcpy(Matrix, N2, 8 * 8 * sizeof(int));
+        break;
+    case '3':
+        memcpy(Matrix, N3, 8 * 8 * sizeof(int));
+        break;
+    case 'E':
+        memcpy(Matrix, End, 8 * 8 * sizeof(int));
+        break;
+    }
+
+    (duration > 0) ? LM.Symbol(Matrix, duration) : LM.Symbol(Matrix);
+};
 
 void genShape()
 {
@@ -79,7 +139,7 @@ void genShape()
         gotShape = true;
         alterShape(-1);
     }
-}
+};
 
 void alterShape(int req)
 {
@@ -113,7 +173,7 @@ void alterShape(int req)
         shiftable = true; // Reset shiftable variable
         for (int i = 0; i < 4; i++)
         { // Check each section
-            if (!(shapeCoordinates[i][1] + command > -1 && shapeCoordinates[i][1] + command < width))
+            if (!(shapeCoordinates[i][1] + command > -1 && shapeCoordinates[i][1] + command < width && stableMemory[shapeCoordinates[i][0]][shapeCoordinates[i][0] + 1] == 0))
             {                      // If it is not in range
                 shiftable = false; // Not shiftable
                 break;
@@ -179,7 +239,7 @@ void alterShape(int req)
         }
         break;
     }
-}
+};
 
 // Function to get the combined state of all buttons
 int getButtonState()
@@ -194,7 +254,7 @@ int getButtonState()
     if (digitalRead(ROTATE_PIN) == HIGH)
         state |= (1 << 3); // Set bit 3 for ROTATE_PIN
     return state;
-}
+};
 
 void checkInput()
 {
@@ -232,7 +292,7 @@ void checkInput()
     }
 
     lastButtonState = currentButtonState; // Update last state
-}
+};
 
 void scanAndClearGrid()
 {
@@ -298,7 +358,7 @@ void scanAndClearGrid()
             sendScore(score);
         }
     }
-}
+};
 
 void gatherThenShowDisplay(bool skip = false)
 {
@@ -327,40 +387,29 @@ void gatherThenShowDisplay(bool skip = false)
             }
         }
     }
-}
 
-void EndorRun()
+    if (millis() - prev < interval) // refresh according to interval
+    {
+        LMtop.Symbol(topLM, 2);
+        LMbot.Symbol(botLM, 2);
+    }
+    else
+    {
+        prev = millis();
+    }
+};
+
+void endAnimation()
 {
-    if (!end) // if not ending
+    for (int i = height - 1; i > -1; i--) // delete and show the entire display
     {
-        if (millis() - prev < interval) // refresh according to interval
+        for (int j = width - 1; j > -1; j--) // Correct loop counter
         {
-            LMtop.Symbol(topLM, 2);
-            LMbot.Symbol(botLM, 2);
-        }
-        else
-        {
-            prev = millis();
+            displayMemory[i + 2][j] = 0;
+            gatherThenShowDisplay(true);
         }
     }
-    else // ending
-    {
-        // for (int i = 0; i < 5; i++)  // blink the entire display 5 times
-        // {
-        //   LMtop.Symbol(topLM, 4);
-        //   LMbot.Symbol(botLM, 4);
-        // }
-
-        // for (int i = height - 1; i > -1; i--)  // delete and show the entire display
-        // {
-        //   for (int j = width - 1; j > -1; j--)  // Correct loop counter
-        //   {
-        //     displayMemory[i][j] = 0;
-        //     gatherThenShowDisplay(true);
-        //   }
-        // }
-    }
-}
+};
 
 void sendScore(int score)
 {
@@ -368,55 +417,65 @@ void sendScore(int score)
     Serial8.write(lowByte(score));  // Send the lower byte
     Serial8.write(highByte(score)); // Send the upper byte
 
-    if (score == 65535)
+    if (score == 10001)
     { // reset call
         SCB_AIRCR = 0x05FA0004;
     }
-}
+};
 
 void setup()
 {
-    randomSeed(analogRead(24));
+    randomSeed(analogRead(24)); // random generator
 
-    Serial.begin(9600);
-    Serial8.begin(9600);
+    Serial.begin(9600);  // Serial start
+    Serial8.begin(9600); // pin
 
     for (int i = 30; i < 34; i++)
     {
         pinMode(i, INPUT);
     }
+
+    ShowSymbol(LMtop, '3', 500);
+    ShowSymbol(LMtop, '2', 500);
+    ShowSymbol(LMtop, '1', 500);
+
+    sendScore(10000); // initiate the other board
 }
 
 void loop()
 {
     if (digitalRead(reset_pin) == HIGH)
     {
-        uint16_t resetSignal = 65535;
-        reset();
+        sendScore(10001); // reset call
     }
-    if (!end)
+    if (ended)
     {
-        // Generate shape if none
-        genShape();
-
-        // Check inputs with edge detection (instant response after release)
-        checkInput();
-
-        // Main game logic (running on its own timing)
-        if (millis() - prev >= interval)
-        {
-            prev = millis();
-            alterShape(2); // Move down by default
-        }
-
-        // Update display
-        gatherThenShowDisplay();
-        EndorRun();
+        ShowSymbol(LMbot, 'E');
     }
     else
     {
-        Serial.println(score);
+        if (!end)
+        {
+            // Generate shape if none
+            genShape();
+
+            // Check inputs with edge detection (instant response after release)
+            checkInput();
+
+            // Main game logic (running on its own timing)
+            if (millis() - prev >= interval)
+            {
+                prev = millis();
+                alterShape(2); // Move down by default
+            }
+
+            // Update display
+            gatherThenShowDisplay();
+        }
+        else
+        {
+            endAnimation();
+            ended = true;
+        }
     }
 }
-
-// add in speed up system
