@@ -1,3 +1,5 @@
+#include <math.h>
+
 bool scoring = true;
 int score = 0;
 
@@ -118,14 +120,14 @@ void genShape()
 {
     if (!gotShape)
     {
-        // Tetriminoes (shapes) in (y, x)
-        int J[4][2] = {{0, 3}, {1, 1}, {0, 1}, {0, -1}};
-        int L[4][2] = {{0, 3}, {1, -1}, {0, 1}, {0, -1}};
-        int S[4][2] = {{0, 3}, {0, 1}, {1, 0}, {1, -1}};
-        int Z[4][2] = {{0, 3}, {0, -1}, {1, 0}, {1, 1}};
-        int T[4][2] = {{0, 3}, {0, 1}, {1, 0}, {1, -1}};
-        int O[4][2] = {{0, 3}, {1, 0}, {0, 1}, {1, 1}};
-        int I[4][2] = {{0, 3}, {0, 1}, {0, -1}, {0, -2}};
+        // Tetriminoes (shapes) in (y, x), (deg n , multiplier)
+        int J[4][2] = {{0, 3}, {0, 1}, {180, 1}, {135, 1}};
+        int L[4][2] = {{0, 3}, {0, 1}, {180, 1}, {45, 1}};
+        int S[4][2] = {{0, 3}, {0, 1}, {90, 1}, {135, 1}};
+        int Z[4][2] = {{0, 3}, {180, 1}, {90, 1}, {45, 1}};
+        int T[4][2] = {{0, 3}, {0, 1}, {90, 1}, {180, 1}};
+        int O[4][2] = {{0, 3}, {0, 1}, {45, 1}, {90, 1}};
+        int I[4][2] = {{0, 3}, {0, 1}, {180, 1}, {180, 2}};
 
         // Array of pointers to tetrimino shapes
         int(*shapes[7])[2] = {J, L, S, Z, T, O, I};
@@ -137,27 +139,22 @@ void genShape()
         memcpy(currentShape, shapes[randomShapeIndex], 4 * 2 * sizeof(int));
 
         gotShape = true;
-        alterShape(-1);
+        alterShape();
     }
 };
 
-void alterShape(int req)
+void alterShape(int req  = -1)
 {
     bool shiftable = true; // Initialize outside the switch block
 
+    shapeCoordinates[0][0] = currentShape[0][0];
+    shapeCoordinates[0][1] = currentShape[0][1];
+
     // Get all the coordinates
-    for (int i = 0; i < 4; i++)
+    for (int i = 1; i < 4; i++)
     {
-        if (i == 0)
-        {
-            shapeCoordinates[i][0] = currentShape[i][0];
-            shapeCoordinates[i][1] = currentShape[i][1];
-        }
-        else
-        {
-            shapeCoordinates[i][0] = currentShape[0][0] + currentShape[i][0];
-            shapeCoordinates[i][1] = currentShape[0][1] + currentShape[i][1];
-        }
+        shapeCoordinates[i][0] = shapeCoordinates[0][0] + round(sin(currentShape[i][0])) * currentShape[i][1];
+        shapeCoordinates[i][1] = shapeCoordinates[0][1] + round(cos(currentShape[i][0])) * currentShape[i][1];
     }
 
     switch (req)
@@ -207,21 +204,22 @@ void alterShape(int req)
         break;
 
     case 3: // rotating
-        int tempRelative[3][2];
+        int degBefore[3][2];
         for (int i = 0; i < 3; i++)
         {
-            tempRelative[i][0] = currentShape[i + 1][0];
-            tempRelative[i][1] = currentShape[i + 1][1];
+            degBefore[i][0] = currentShape[i+1][0];
         }
 
         bool rotate = true;
         for (int i = 1; i < 4; i++) // Flip and negate the relative coordinates for a 90-degree clockwise rotation
         {
-            int temp = currentShape[i][0];
-            currentShape[i][0] = currentShape[i][1];
-            currentShape[i][1] = -temp;
+            currentShape[i][0] += 90;
+            if(currentShape[i][0] > 360)
+            {
+                currentShape[i][0] -= 360;
+            }
         }
-        alterShape(-1);
+        alterShape();
         for (int i = 0; i < 4; i++) // check each section
         {
             if (stableMemory[currentShape[i][0]][currentShape[i][1]] == 1)
@@ -233,8 +231,7 @@ void alterShape(int req)
         {
             for (int i = 1; i < 4; i++)
             {
-                currentShape[i][0] = tempRelative[i - 1][0];
-                currentShape[i][1] = tempRelative[i - 1][1];
+                currentShape[i][0] = degBefore[i - 1][0];
             }
         }
         break;
