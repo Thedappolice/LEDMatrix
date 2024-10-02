@@ -69,10 +69,6 @@ void recieveSerial()
 
         switch (input)
         {
-        case 10001:
-            asm volatile("jmp 0");
-            break;
-
         case 10000:
             initiate = true;
             break;

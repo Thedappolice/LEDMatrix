@@ -410,14 +410,8 @@ void endAnimation()
 
 void sendScore(int score)
 {
-
     Serial8.write(lowByte(score));  // Send the lower byte
     Serial8.write(highByte(score)); // Send the upper byte
-
-    if (score == 10001)
-    { // reset call
-        SCB_AIRCR = 0x05FA0004;
-    }
 };
 
 void setup()
