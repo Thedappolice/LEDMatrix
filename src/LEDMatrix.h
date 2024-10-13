@@ -1,4 +1,4 @@
-#ifndef LEDMatrix_H
+ #ifndef LEDMatrix_H
 #define LEDMatrix_H
 
 #include <Arduino.h>
@@ -20,6 +20,8 @@ public:
 
     void Symbol(int UserMatrix[][8], unsigned long showTime = 1000); // display custom symbol
 
+
+
 private:
     int Col;
     int Row;
@@ -35,5 +37,11 @@ private:
     int *OutputCol;
     int *OutputRow;
 };
+
+class LEDMatrixChip extends LEDMatrix
+{
+public :
+LEDMatrixChip(int CLK, int SCI, int)
+}
 
 #endif
