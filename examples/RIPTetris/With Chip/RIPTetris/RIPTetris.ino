@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include<Dis7seg.h>
+#include <Dis7seg.h>
 int score = 0;
 
 #define reset_pin 36
@@ -11,7 +11,7 @@ int score = 0;
 #define DOWN_PIN 30
 #include <LEDMatrix.h>
 
-//initialize matrix!!
+// initialize matrix!!
 
 // Grid definition
 const int width = 8;
@@ -135,7 +135,7 @@ void genShape()
     }
 };
 
-void alterShape(int req  = -1)
+void alterShape(int req = -1)
 {
     bool shiftable = true; // Initialize outside the switch block
 
@@ -199,14 +199,14 @@ void alterShape(int req  = -1)
         int degBefore[3][2];
         for (int i = 0; i < 3; i++)
         {
-            degBefore[i][0] = currentShape[i+1][0];
+            degBefore[i][0] = currentShape[i + 1][0];
         }
 
         bool rotate = true;
         for (int i = 1; i < 4; i++) // Flip and negate the relative coordinates for a 90-degree clockwise rotation
         {
             currentShape[i][0] += 90;
-            if(currentShape[i][0] > 360)
+            if (currentShape[i][0] > 360)
             {
                 currentShape[i][0] -= 360;
             }
@@ -340,9 +340,8 @@ void scanAndClearGrid()
             }
         }
 
-            int clearedRows = arrayCount + 1;         // rows cleared
-            score += (pow(clearedRows, clearedRows)); // add the score
-            
+        int clearedRows = arrayCount + 1;         // rows cleared
+        score += (pow(clearedRows, clearedRows)); // add the score
     }
 };
 
@@ -385,7 +384,7 @@ void gatherThenShowDisplay(bool skip = false)
     }
 };
 
-void endAnimation()//change this
+void endAnimation() // change this
 {
     for (int i = height - 1; i > -1; i--) // delete and show the entire display
     {
@@ -426,12 +425,10 @@ void setup()
         pinMode(i, INPUT);
     }
 
-			//change these
+    // change these
     ShowSymbol(LMtop, '3', 500);
     ShowSymbol(LMtop, '2', 500);
     ShowSymbol(LMtop, '1', 500);
-
-
 }
 
 void loop()
@@ -461,7 +458,7 @@ void loop()
             // Update display
             gatherThenShowDisplay();
 
-void showScore();
+            void showScore();
         }
         else
         {
