@@ -1,28 +1,17 @@
-#include <Dis7Seg.h> //if have 7-segment display liabrary
+#include <math.h>
+
+#include<Dis7seg.h>
 int score = 0;
-bool scoring = true;
 
-Dis7Seg dis('-', segmentPins, 4, digitPins);
-int digitPins[] = {10, 11, 12, 13};
-int segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9};
-int scoreOut[] = {-1, -1, -1, 0};
+#define reset_pin 36
 
-#define ROTATE_PIN 34
-#define LEFT_PIN 35
-#define RIGHT_PIN 36
-#define DOWN_PIN 37
+#define ROTATE_PIN 31
+#define LEFT_PIN 32
+#define RIGHT_PIN 33
+#define DOWN_PIN 30
 #include <LEDMatrix.h>
 
-// Initialize LEDMatrix instance
-LEDMatrix LMtop(posPintop, 8, negPintop, 8);
-LEDMatrix LMbot(posPinbot, 8, negPinbot, 8);
-
-// Pin configurations of 1st Led matrix
-const int posPintop[] = {2, 3, 4, 5, 6, 7, 8, 9};
-const int negPintop[] = {10, 11, 12, 13, 14, 15, 16, 17};
-// Pin configurations of 2nd Led matrix
-const int posPinbot[] = {18, 19, 20, 21, 22, 23, 24, 25};
-const int negPinbot[] = {26, 27, 28, 29, 30, 31, 32, 33};
+//initialize matrix!!
 
 // Grid definition
 const int width = 8;
@@ -41,25 +30,96 @@ int botLM[width][width] = {{0}};
 
 // the shape in use in (x, y)
 int currentShape[4][2] = {{0}};
+int shapeCoordinates[4][2]; // in (y, x)
 
 // determinants
 bool gotShape = false;
 int command = -2;
-int shapeCoordinates[4][2]; // in (y, x)
 bool end = false;
+bool ended = false;
+
+// timing the game
+unsigned long interval = 500; // downwards interval
+unsigned long prev = 0;
+
+int lastButtonState = 0;
+
+unsigned long lastRotateTime = 0;   // Timestamp for the last rotation
+unsigned long rotateInterval = 300; // Interval for rotation (in milliseconds)
+
+unsigned long lastInputTime = 0;
+unsigned long inputInterval = 100; // Adjust this based on how frequently you want to check input
+
+void ShowSymbol(LEDMatrix &LM, char input, unsigned long duration = 0)
+{
+    int Matrix[8][8] = {{0}};
+    int End[8][8] = {
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
+        {1, 1, 1, 0, 0, 0, 0, 1},
+        {1, 0, 0, 0, 0, 0, 0, 1},
+        {1, 1, 0, 0, 1, 0, 0, 1},
+        {1, 0, 0, 1, 0, 1, 1, 0},
+        {1, 1, 1, 1, 0, 1, 0, 1},
+        {0, 0, 0, 0, 0, 0, 0, 0}};
+    int N1[8][8] = {
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 0, 0, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0}};
+    int N2[8][8] = {
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 0, 0, 1, 1, 0},
+        {0, 0, 0, 0, 1, 1, 1, 0},
+        {0, 0, 0, 1, 1, 1, 0, 0},
+        {0, 0, 1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0}};
+    int N3[8][8] = {
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 0, 0, 0, 0, 1, 1, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0},
+        {0, 0, 0, 0, 0, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 0, 1, 1, 1, 1, 0, 0}};
+    switch (input)
+    {
+    case '1':
+        memcpy(Matrix, N1, 8 * 8 * sizeof(int));
+        break;
+    case '2':
+        memcpy(Matrix, N2, 8 * 8 * sizeof(int));
+        break;
+    case '3':
+        memcpy(Matrix, N3, 8 * 8 * sizeof(int));
+        break;
+    case 'E':
+        memcpy(Matrix, End, 8 * 8 * sizeof(int));
+        break;
+    }
+
+    (duration > 0) ? LM.Symbol(Matrix, duration) : LM.Symbol(Matrix);
+};
 
 void genShape()
 {
     if (!gotShape)
     {
-        // Tetriminoes (shapes) in (x, y)
-        int J[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {1, -1}};
-        int L[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {1, 1}};
-        int S[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {-1, -1}};
-        int Z[4][2] = {{3, 3}, {-1, 0}, {-1, 0}, {1, -1}};
-        int T[4][2] = {{3, 3}, {1, 0}, {-1, 0}, {0, -1}};
-        int O[4][2] = {{3, 3}, {-1, 0}, {1, 0}, {-1, -1}};
-        int I[4][2] = {{3, 3}, {0, 1}, {0, -1}, {0, -2}};
+        // Tetriminoes (shapes) in (y, x), (deg n , multiplier)
+        int J[4][2] = {{0, 3}, {0, 1}, {180, 1}, {135, 1}};
+        int L[4][2] = {{0, 3}, {0, 1}, {180, 1}, {45, 1}};
+        int S[4][2] = {{0, 3}, {0, 1}, {90, 1}, {135, 1}};
+        int Z[4][2] = {{0, 3}, {180, 1}, {90, 1}, {45, 1}};
+        int T[4][2] = {{0, 3}, {0, 1}, {90, 1}, {180, 1}};
+        int O[4][2] = {{0, 3}, {0, 1}, {45, 1}, {90, 1}};
+        int I[4][2] = {{0, 3}, {0, 1}, {180, 1}, {180, 2}};
 
         // Array of pointers to tetrimino shapes
         int(*shapes[7])[2] = {J, L, S, Z, T, O, I};
@@ -69,51 +129,180 @@ void genShape()
 
         // Copy the shape into currentShape
         memcpy(currentShape, shapes[randomShapeIndex], 4 * 2 * sizeof(int));
-    }
-}
 
-void requests(int req)
+        gotShape = true;
+        alterShape();
+    }
+};
+
+void alterShape(int req  = -1)
 {
+    bool shiftable = true; // Initialize outside the switch block
+
+    shapeCoordinates[0][0] = currentShape[0][0];
+    shapeCoordinates[0][1] = currentShape[0][1];
+
+    // Get all the coordinates
+    for (int i = 1; i < 4; i++)
+    {
+        shapeCoordinates[i][0] = shapeCoordinates[0][0] + round(sin(currentShape[i][0])) * currentShape[i][1];
+        shapeCoordinates[i][1] = shapeCoordinates[0][1] + round(cos(currentShape[i][0])) * currentShape[i][1];
+    }
+
     switch (req)
     {
-    default: // get all the coordinates
-        for (int i = 0; i < 4; i++)
-        {
-            if (i == 0)
-            {
-                shapeCoordinates[i][1] = currentShape[i][0];
-                shapeCoordinates[i][0] = currentShape[i][1];
-            }
-            else
-            {
-                shapeCoordinates[i][1] = currentShape[0][0] + currentShape[i][0];
-                shapeCoordinates[i][0] = currentShape[0][1] + currentShape[i][1];
-            }
-        }
-        break;
-
-    case 0: // record all shape cords to the display grid
+    case 0: // Record all shape coordinates to the display grid
         for (int i = 0; i < 4; i++)
         {
             stableMemory[shapeCoordinates[i][0]][shapeCoordinates[i][1]] = 1;
         }
         break;
 
-    case 1: // checking at the illegal zone
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < width; j++) // Check the rest of the row
-            {
-                if (stableMemory[i][j] == 1) // If any cell is full
-                {
-                    end = true; // The row is not full
-                    break;      // Exit the loop early
-                }
+    case 1:               // Shifting (left/right)
+        shiftable = true; // Reset shiftable variable
+        for (int i = 0; i < 4; i++)
+        { // Check each section
+            if (!(shapeCoordinates[i][1] + command > -1 && shapeCoordinates[i][1] + command < width && stableMemory[shapeCoordinates[i][0]][shapeCoordinates[i][0] + 1] == 0))
+            {                      // If it is not in range
+                shiftable = false; // Not shiftable
+                break;
             }
+        }
+        if (shiftable)
+        {
+            currentShape[0][1] = currentShape[0][1] + command; // Shift if possible
         }
         break;
 
-    case 2:                 // checking for full rows
+    case 2: // Move downwards
+        for (int i = 0; i < 4; i++)
+        { // Check for each section of the shape
+            if (stableMemory[shapeCoordinates[i][0] + 1][shapeCoordinates[i][1]] == 1 || shapeCoordinates[i][0] + 1 == checkingHeight)
+            { // If one section's below is already registered as 1 or the section hits the ground
+                alterShape(0);
+                gotShape = false; // Shape has been used up
+                break;
+            }
+        }
+
+        if (gotShape)
+        {
+            currentShape[0][0]++;
+        }
+        else
+        {
+            scanAndClearGrid();
+        }
+        break;
+
+    case 3: // rotating
+        int degBefore[3][2];
+        for (int i = 0; i < 3; i++)
+        {
+            degBefore[i][0] = currentShape[i+1][0];
+        }
+
+        bool rotate = true;
+        for (int i = 1; i < 4; i++) // Flip and negate the relative coordinates for a 90-degree clockwise rotation
+        {
+            currentShape[i][0] += 90;
+            if(currentShape[i][0] > 360)
+            {
+                currentShape[i][0] -= 360;
+            }
+        }
+        alterShape();
+        for (int i = 0; i < 4; i++) // check each section
+        {
+            if (stableMemory[currentShape[i][0]][currentShape[i][1]] == 1)
+            {
+                rotate = false; // shape cannot be rotated
+            }
+        }
+        if (!rotate)
+        {
+            for (int i = 1; i < 4; i++)
+            {
+                currentShape[i][0] = degBefore[i - 1][0];
+            }
+        }
+        break;
+    }
+};
+
+// Function to get the combined state of all buttons
+int getButtonState()
+{
+    int state = 0;
+    if (digitalRead(LEFT_PIN) == HIGH)
+        state |= (1 << 0); // Set bit 0 for LEFT_PIN
+    if (digitalRead(RIGHT_PIN) == HIGH)
+        state |= (1 << 1); // Set bit 1 for RIGHT_PIN
+    if (digitalRead(DOWN_PIN) == HIGH)
+        state |= (1 << 2); // Set bit 2 for DOWN_PIN
+    if (digitalRead(ROTATE_PIN) == HIGH)
+        state |= (1 << 3); // Set bit 3 for ROTATE_PIN
+    return state;
+};
+
+void checkInput()
+{
+    int currentButtonState = getButtonState(); // Get current button states
+
+    // Check for any change in the button state
+    if (currentButtonState != lastButtonState)
+    {
+        // Determine which button has been pressed
+        if (currentButtonState & (1 << 0) && !(lastButtonState & (1 << 0)))
+        {                  // LEFT pressed
+            command = -1;  // Move left
+            alterShape(1); // Perform the action
+        }
+        else if (currentButtonState & (1 << 1) && !(lastButtonState & (1 << 1)))
+        {                // RIGHT pressed
+            command = 1; // Move right
+            alterShape(1);
+        }
+        else if (currentButtonState & (1 << 2) && !(lastButtonState & (1 << 2)))
+        {                // DOWN pressed
+            command = 0; // Move down
+            alterShape(2);
+        }
+        else if (currentButtonState & (1 << 3) && !(lastButtonState & (1 << 3)))
+        { // ROTATE pressed
+            // Check if enough time has passed since the last rotation
+            if (millis() - lastRotateTime >= rotateInterval)
+            {
+                command = 2; // Rotate
+                alterShape(3);
+                lastRotateTime = millis(); // Update the last rotation time
+            }
+        }
+    }
+
+    lastButtonState = currentButtonState; // Update last state
+};
+
+void scanAndClearGrid()
+{
+
+    for (int i = 0; i < 3; i++) // checking at illegal zone, LOSING FACTOR
+    {
+        for (int j = 0; j < width; j++) // Check the rest of the row
+        {
+            if (stableMemory[i][j] == 1) // If any cell is full
+            {
+                end = true; // The row is not full
+                return;     // Exit the function early
+            }
+        }
+    }
+
+    int fullRows[4] = {-1, -1, -1, -1}; // Array to store the indices of full rows initialized to -1
+    int arrayCount = -1;
+
+    for (int i = 3; i < checkingHeight; i++)
+    {
         bool isFull = true; // Assume the row is full initially
 
         for (int j = 0; j < width; j++) // Check the rest of the row
@@ -130,9 +319,11 @@ void requests(int req)
             arrayCount++;
             fullRows[arrayCount] = i; // Store the row index
         }
-        break;
+    }
 
-    case 3:
+    // Counter for index of full rows
+    if (arrayCount != -1) // if 1st element of fullRows is altered
+    {
         for (int i = 0; i < arrayCount + 1; i++) // repeat the amount of rows to be cleared
         {
             for (int j = 0; j < width; j++)
@@ -141,164 +332,34 @@ void requests(int req)
             }
         }
 
-        for (int i = fullRows[0]; i > 0; i--)
+        for (int i = fullRows[0]; i > 0; i--) // bring the rest of the rows downwards
         {
             for (int j = 0; j < width; j++)
             {
-                stableMemory[i][j] = stableMemory[i - 1][j]; // bring the rest of the rows downwards
+                stableMemory[i][j] = stableMemory[i - 1][j];
             }
         }
-        break;
+
+            int clearedRows = arrayCount + 1;         // rows cleared
+            score += (pow(clearedRows, clearedRows)); // add the score
+            
     }
-}
-void alterShape()
-{
-    switch (command)
-    {
-    case 0:
-        request();
-        for (int i = 0; i < 4; i++) // cheack for each section of the shape
-        {
-            if (stableMemory[shapeCoordinates[i][0] + 1][0] == 1 || shapeCoordinates[i][0] + 1 == checkingHeight - 1) // if one section's below is already registered as 1 or the section hits the ground
-            {
-                request(0);
-                break;
-            }
-        }
-        gotShape = false; // shape has been used up
-        break;            // exit the loop early
-
-    case (1 || -1):
-        request();
-        bool shiftable = true;      // can it be shifted
-        for (int i = 0; i < 4; i++) // check each section
-        {
-            if (!(shapeCoordinates[i][1] + command > -1 && shapeCoordinates[i][1] + command < width)) // if it is not in range
-            {
-                shiftable = false; // not shitable
-                break;
-            }
-        }
-        if (shiftable)
-        {
-            currentShape[0][0] = currentShape[0][0] + command; // shift if possible
-        }
-        break;
-
-    case 2:
-        int tempRelative[3][2];
-        for (int i = 0; i < 3; i++)
-        {
-            tempRelative[i][0] = currentShape[i + 1][0];
-            tempRelative[i][1] = currentShape[i + 1][1];
-        }
-
-        bool rotate = true;
-        for (int i = 1; i < 4; i++)
-        {
-            // Flip and negate the relative coordinates for a 90-degree clockwise rotation
-            int temp = currentShape[i][0];
-            currentShape[i][0] = currentShape[i][1];
-            currentShape[i][1] = -temp;
-        }
-        req();
-        for (int i = 0; i < 4; i++) // check each section
-        {
-            if (stableMemory[currentShape[i][0]][currentShape[i][1]] == 1)
-            {
-                rotate = false; // shape cannot be rotated
-            }
-        }
-        if (!rotate)
-        {
-            for (int i = 1; i < 4; i++)
-            {
-                currentShape[i][0] = tempRelative[i - 1][0];
-                currentShape[i][1] = tempRelative[i - 1][1];
-            }
-        }
-        break;
-    }
-    return;
 };
 
-void checkInput(int forced = false) // check and identify the input command
+void gatherThenShowDisplay(bool skip = false)
 {
-    bool leftState = digitalRead(LEFT_PIN) == HIGH;
-    bool rightState = digitalRead(RIGHT_PIN) == HIGH;
-    bool downState = digitalRead(DOWN_PIN) == HIGH;
-    bool rotateState = digitalRead(ROTATE_PIN) == HIGH;
-
-    if (downState || forced)
+    // gather output
+    if (!skip)
     {
-        command = 0;
-    }
-    else if (rotateState)
-    {
-        command = 2;
-    }
-    else if (leftState)
-    {
-        command = -1;
-    }
-    else if (rightState)
-    {
-        command = 1;
-    }
-    else
-    {
-        command = -2;
-    }
-}
-
-void scanAndClearGrid()
-{
-    int fullRows[4] = {-1, -1, -1, -1}; // Array to store the indices of full rows initialized to -1
-    int arrayCount = -1;                // Counter for index of full rows
-
-    for (int i = 0; i < checkingHeight; i++)
-    {
-        if (i < 3)
+        memcpy(displayMemory, stableMemory, sizeof(stableMemory));
+        for (int i = 0; i < 4; i++)
         {
-            req(1);
-        }
-        else
-        {
-            req(2);
+            displayMemory[shapeCoordinates[i][0]][shapeCoordinates[i][1]] = 1;
         }
     }
 
-    if (arrayCount != -1) // if 1st element of fullRows is altered
-    {
-        req(3);
-        if (scoring) // if scoring is enabled
-        {
-            int clearedRows = arrayCount + 1;                  // rows cleared
-            int score += pow(clearedRows, clearedRows); // add the score
-        }
-    }
-}
-
-void gatherDisplay()
-{
-    memset(displayMemory, stableMemory, witdh * checkingHeight);
-
-    for (int i = 0; i < 4; i++) // light the moving shape
-    {
-        if (i == 0)
-        {
-            displayMemory[currentShape[i][0]][currentShape[i][1]] = 1;
-        }
-        else
-        {
-            displayMemory[currentShape[0][0] + currentShape[i][0]][currentShape[0][1] + currentShape[i][1]] = 1;
-        }
-    }
-}
-
-void showDisplay()
-{
-    for (int i = 0; i < height; i++)
+    // outputdisplay onto matrix
+    for (int i = 0; i < checkingHeight - 2; i++)
     {
         for (int j = 0; j < width; j++)
         {
@@ -312,71 +373,85 @@ void showDisplay()
             }
         }
     }
-}
 
-void EndorRun()
-{
-    if (!end) // if not ending
+    if (millis() - prev < interval) // refresh according to interval
     {
-        unsigned long interval = 200;
-        unsigned long prev = millis();
-        while (millis() - prev < interval) // refresh according to interval
+        LMtop.Symbol(topLM, 2);
+        LMbot.Symbol(botLM, 2);
+    }
+    else
+    {
+        prev = millis();
+    }
+};
+
+void endAnimation()//change this
+{
+    for (int i = height - 1; i > -1; i--) // delete and show the entire display
+    {
+        for (int j = width - 1; j > -1; j--) // Correct loop counter
         {
-            LMtop.Symbol(topLM);
-            LMbot.Symbol(botLM);
-            dis.scan(scoreOut);
+            displayMemory[i + 2][j] = 0;
+            gatherThenShowDisplay(true);
         }
     }
-    else // ending
-    {
-        for (int i = 0; i < 5; i++) // blink the entire display 5 times
-        {
-            LMtop.Symbol(topLM);
-            LMbot.Symbol(botLM);
-            dis.scan(scoreOut);
-        }
+};
 
-        for (int i = height - 1; i > -1; i--) // delete and show the entire display
-        {
-            for (int j = width - 1; j > -1; j--) // Correct loop counter
-            {
-                displayMemory[i][j] = 0;
-                showDisplay();
-                dis.scan(scoreOut);
-            }
-        }
-    }
-}
-
-void ending()
+void showScore()
 {
-    dis.scan();
-}
+    //implement dis7seg
+};
 
 void setup()
 {
-    randomSeed(analogRead(A4));
- 
+    randomSeed(analogRead(24)); // random generator
+
+    for (int i = 30; i < 34; i++)
+    {
+        pinMode(i, INPUT);
+    }
+
+			//change these
+    ShowSymbol(LMtop, '3', 500);
+    ShowSymbol(LMtop, '2', 500);
+    ShowSymbol(LMtop, '1', 500);
+
+
 }
 
 void loop()
 {
-    if (!end)
+
+    if (ended)
     {
-        genShape();
-
-        checkInput();
-        stabilizeShape();
-        checkInput(true);
-        stabilizeShape();
-
-        scanAndClearGrid();
-        gatherDisplay();
-        showDisplay();
-        EndorRun();
+        ShowSymbol(LMbot, 'E');
     }
     else
     {
-        ending();
+        if (!end)
+        {
+            // Generate shape if none
+            genShape();
+
+            // Check inputs with edge detection (instant response after release)
+            checkInput();
+
+            // Main game logic (running on its own timing)
+            if (millis() - prev >= interval)
+            {
+                prev = millis();
+                alterShape(2); // Move down by default
+            }
+
+            // Update display
+            gatherThenShowDisplay();
+
+void showScore();
+        }
+        else
+        {
+            endAnimation();
+            ended = true;
+        }
     }
 }
