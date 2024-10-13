@@ -399,7 +399,22 @@ void endAnimation()//change this
 
 void showScore()
 {
-    //implement dis7seg
+    for (int i = 3; i >= 0; i--)
+    {
+        scoreNum[i] = score % 10; // Get the last digit
+        score /= 10;              // Remove the last digit from input
+    }
+
+    // Handle leading zeros by replacing them with -1 to leave the digit blank
+    for (int i = 0; i < 3; i++)
+    {
+        if (scoreNum[i] == 0 && (i == 0 || scoreNum[i - 1] == -1))
+        {
+            scoreNum[i] = -1; // Set leading zeroes to -1 (blank)
+        }
+    }
+    // Update the 7-segment display with the new score
+    dis.scan(scoreNum); // Refresh the display with updated score
 };
 
 void setup()
