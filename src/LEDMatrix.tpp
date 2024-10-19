@@ -29,10 +29,10 @@ LEDMatrix<ColSize, RowSize>::LEDMatrix(int posPins[], int negPins[])
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::turnOn(int xCol, int yRow, int delayTime)
 {
-  digitalWrite(Pins[limitingCols(xCol)], HIGH);
+  digitalWrite(Pins[limitingGrid(0, xCol)], HIGH);
   for (size_t i = 0; i < Row; i++)
   {
-    if (i == limitingRows(yRow))
+    if (i == limitingGrid(1, yRow))
     {
       digitalWrite(Pins[Col + i], LOW);
     }
@@ -45,7 +45,7 @@ void LEDMatrix<ColSize, RowSize>::turnOn(int xCol, int yRow, int delayTime)
 }
 
 template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::customCol(int array[8], size_t xCol, int shift, int delayTime)
+void LEDMatrix<ColSize, RowSize>::customCol(int array[8], int xCol, int shift, int delayTime)
 {
   if (shift > 0)
   {
@@ -80,7 +80,7 @@ void LEDMatrix<ColSize, RowSize>::customCol(int array[8], size_t xCol, int shift
     }
   }
 
-  digitalWrite(Pins[limitingCols(xCol)], HIGH);
+  digitalWrite(Pins[limitingGrid(0, xCol)], HIGH);
   for (size_t i = 0; i < Row; i++)
   {
     if (OutputCol[i] == 1)
@@ -97,7 +97,7 @@ void LEDMatrix<ColSize, RowSize>::customCol(int array[8], size_t xCol, int shift
 }
 
 template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::customRow(int array[8], size_t yRow, int shift, int delayTime)
+void LEDMatrix<ColSize, RowSize>::customRow(int array[8], int yRow, int shift, int delayTime)
 {
   if (shift > 0)
   {
@@ -134,7 +134,7 @@ void LEDMatrix<ColSize, RowSize>::customRow(int array[8], size_t yRow, int shift
 
   for (size_t i = 0; i < Row; i++)
   {
-    if (i == limitingRows(yRow))
+    if (i == limitingGrid(1, yRow))
     {
       digitalWrite(Pins[Col + i], LOW);
     }
@@ -158,9 +158,9 @@ void LEDMatrix<ColSize, RowSize>::customRow(int array[8], size_t yRow, int shift
 }
 
 template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::OnCol(size_t xCol, int delayTime)
+void LEDMatrix<ColSize, RowSize>::OnCol(int xCol, int delayTime)
 {
-  digitalWrite(Pins[limitingCols(xCol)], HIGH);
+  digitalWrite(Pins[limitingGrid(0, xCol)], HIGH);
   for (size_t i = 0; i < Row; i++)
   {
     digitalWrite(Pins[Col + i], LOW);
@@ -169,7 +169,7 @@ void LEDMatrix<ColSize, RowSize>::OnCol(size_t xCol, int delayTime)
 }
 
 template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::OnRow(size_t yRow, int delayTime)
+void LEDMatrix<ColSize, RowSize>::OnRow(int yRow, int delayTime)
 {
   for (size_t i = 0; i < Col; i++)
   {
@@ -177,7 +177,7 @@ void LEDMatrix<ColSize, RowSize>::OnRow(size_t yRow, int delayTime)
   }
   for (size_t i = 0; i < Row; i++) // Use size_t instead of int
   {
-    if (i == limitingRows(yRow))
+    if (i == limitingGrid(1, yRow))
     {
       digitalWrite(Pins[Col + i], LOW);
     }
@@ -215,9 +215,47 @@ void LEDMatrix<ColSize, RowSize>::Test()
   }
 }
 
+// template <size_t ColSize, size_t RowSize>
+// void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime)
+// {
+//   unsigned long before = millis();
+//   while (millis() - before < showTime)
+//   {
+//     for (size_t i = 0; i < Row; i++) // repeating for each Row
+//     {
+//       for (size_t j = 0; j < Col; j++) // repeating for each entity of array
+
+//         if (UserMatrix[j][i] == 1)
+//         {
+//           digitalWrite(Pins[j], HIGH); // pulling pin HIGH to light LED
+//         }
+//         else
+//         {
+//           digitalWrite(Pins[j], LOW); // pulling pin LOW to dim LED
+//         }
+
+//       // pulling the i-th Row Pin LOW
+//       digitalWrite(Pins[i + Col], LOW);
+
+//       Clear(2, i); // Clearing up
+//     }
+//   }
+// }
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime)
 {
+  uint8_t Rows[Col];
+  for (size_t i = 0; i < Row; i++)
+  {
+    for (size_t j = 0; i < Col; i++)
+    {
+      if (UserMatrix[i][j] == 1)
+      {
+        Rows[i] = 0b000000 |= (1 << j);
+      }
+    }
+  }
+
   unsigned long before = millis();
   while (millis() - before < showTime)
   {
@@ -245,41 +283,19 @@ void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsig
 // private:
 
 template <size_t ColSize, size_t RowSize>
-size_t LEDMatrix<ColSize, RowSize>::limitingCols(size_t xCol)
+size_t LEDMatrix<ColSize, RowSize>::limitingGrid(bool axis, int value)
 {
-  int limitedx;
-  if (xCol >= Col)
+  int check = (!axis) ? Col : Row;
+  int limited = value;
+  if (value >= check)
   {
-    limitedx = Col - 1;
+    limited = check - 1;
   }
-  else if (xCol < 0)
+  else if (value < 0)
   {
-    limitedx = 0;
+    limited = 0;
   }
-  else
-  {
-    limitedx = xCol;
-  }
-  return limitedx;
-}
-
-template <size_t ColSize, size_t RowSize>
-size_t LEDMatrix<ColSize, RowSize>::limitingRows(size_t yRow)
-{
-  int limitedy;
-  if (yRow >= Row)
-  {
-    limitedy = Row - 1;
-  }
-  else if (yRow < 0)
-  {
-    limitedy = 0;
-  }
-  else
-  {
-    limitedy = yRow;
-  }
-  return limitedy;
+  return (size_t)limited;
 }
 
 template <size_t ColSize, size_t RowSize>
