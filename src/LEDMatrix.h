@@ -3,54 +3,34 @@
 
 #include <Arduino.h>
 
+template <size_t ColSize, size_t RowSize>
 class LEDMatrix
 {
 public:
-    LEDMatrix(int posPins[], int posPinSize, int negPins[], int negPinSize); // constructor
+  LEDMatrix(int posPins[], int negPins[]); // Constructor
 
-    virtual void turnOn(int xCol, int yRow, int delayTime = 2); // turn on x-Col's, y-Row's LED
-
-    virtual void customCol(int array[8], int xCol, int shift = 0, int delayTime = 2); // turn on x-Col by given array, shiftable by +/- n
-    virtual void customRow(int array[8], int yRow, int shift = 0, int delayTime = 2); // turn on y-Row by given array, shiftable by +/- n
-
-    virtual void OnRow(int yRow, int delayTime = 2); // turn on entire y-Row
-    virtual void OnCol(int xCol, int delayTime = 2); // turn on entire x-Col
-
-    virtual void Test(); // check all possible LED
-
-    virtual void Symbol(int UserMatrix[][8], unsigned long showTime = 1000); // display custom symbol
+  virtual void turnOn(int xCol, int yRow, int delayTime = 2);                           // Turn on x-Col's, y-Row's LED
+  virtual void customCol(int array[8], size_t xCol, int shift = 0, int delayTime = 2);  // Turn on x-Col by given array, shiftable by +/- n
+  virtual void customRow(int array[8], size_t yRow, int shift = 0, int delayTime = 2);  // Turn on y-Row by given array, shiftable by +/- n
+  virtual void OnRow(size_t yRow, int delayTime = 2);                                   // Turn on entire y-Row
+  virtual void OnCol(size_t xCol, int delayTime = 2);                                   // Turn on entire x-Col
+  virtual void Test();                                                                  // Check all possible LED
+  virtual void Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime = 1000); // Display custom symbol
 
 private:
-    int Col;
-    int Row;
+  size_t Col; // Use size_t for array sizes
+  size_t Row; // Use size_t for array sizes
+  size_t NumPins;
 
-    int *Pins;
-    int NumPins;
+  int *Pins;      // Pointer for dynamically allocated pins
+  int *OutputCol; // Pointer for dynamically allocated column output
+  int *OutputRow; // Pointer for dynamically allocated row output
 
-    void Clear(int delayTime = 2, int n_Row = -1); // clears the display, delayable
-
-    int limitingCols(int xCol); // limits x inputs
-    int limitingRows(int yRow); // limits y inputs
-
-    int *OutputCol;
-    int *OutputRow;
+  void Clear(int delayTime = 2, int n_Row = -1); // Clears the display, delayable
+  size_t limitingCols(size_t xCol);              // Limits x inputs
+  size_t limitingRows(size_t yRow);              // Limits y inputs
 };
 
-class LEDMatrixChip : public LEDMatrix // use ': public' for inheritance
-{
-public:
-    LEDMatrixChip(int CS, int CLK, int MOSI) override; // constructor
-    void clear() override;
-    void turnOn(int xCol, int yRow, int delayTime = 2) override; // turn on x-Col's, y-Row's LED
-    void OnRow(int yRow, int delayTime = 2) override;            // turn on entire y-Row
-    void OnCol(int xCol, int delayTime = 2) override;            // turn on entire x-Col
-
-private:
-    int CS;
-    int CLK;
-    int MOSI;
-    void transfer(uint8_t *p_data, uint8_t len);
-    void write_reg(uint8_t reg, uint8_t value);
-};
+#include "LEDMatrix.tpp"
 
 #endif
