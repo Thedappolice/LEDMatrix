@@ -18,8 +18,8 @@ int negPintop[] = {41, 21, 20, 38, 18, 39, 14, 15};
 int posPinbot[] = {9, 4, 29, 6, 10, 28, 11, 26};
 int negPinbot[] = {5, 12, 25, 8, 27, 7, 3, 2};
 // Initialize LEDMatrix instance
-LEDMatrix LMtop(posPintop, 8, negPintop, 8);
-LEDMatrix LMbot(posPinbot, 8, negPinbot, 8);
+LEDMatrix<8, 8> LMtop(posPintop, negPintop);
+LEDMatrix<8, 8> LMbot(posPinbot, negPinbot);
 
 // Grid definition
 const int width = 8;
@@ -58,7 +58,7 @@ unsigned long rotateInterval = 300; // Interval for rotation (in milliseconds)
 unsigned long lastInputTime = 0;
 unsigned long inputInterval = 100; // Adjust this based on how frequently you want to check input
 
-void ShowSymbol(LEDMatrix &LM, char input, unsigned long duration = 0)
+void ShowSymbol(LEDMatrix<8, 8> &LM, char input, unsigned long duration = 0)
 {
     int Matrix[8][8] = {{0}};
     int End[8][8] = {
@@ -139,11 +139,10 @@ void genShape()
         memcpy(currentShape, shapes[randomShapeIndex], 4 * 2 * sizeof(int));
 
         gotShape = true;
-        alterShape();
     }
 };
 
-void alterShape(int req  = -1)
+void alterShape(int req = -1)
 {
     bool shiftable = true; // Initialize outside the switch block
 
@@ -207,14 +206,14 @@ void alterShape(int req  = -1)
         int degBefore[3][2];
         for (int i = 0; i < 3; i++)
         {
-            degBefore[i][0] = currentShape[i+1][0];
+            degBefore[i][0] = currentShape[i + 1][0];
         }
 
         bool rotate = true;
         for (int i = 1; i < 4; i++) // Flip and negate the relative coordinates for a 90-degree clockwise rotation
         {
             currentShape[i][0] += 90;
-            if(currentShape[i][0] > 360)
+            if (currentShape[i][0] > 360)
             {
                 currentShape[i][0] -= 360;
             }

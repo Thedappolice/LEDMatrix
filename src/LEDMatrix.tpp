@@ -169,7 +169,7 @@ void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsig
 
       setPins(); // run the pins
 
-      delay();
+      delay(2);
     }
   }
 }

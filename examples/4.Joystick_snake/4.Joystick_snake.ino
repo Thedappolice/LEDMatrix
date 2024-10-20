@@ -5,7 +5,7 @@ int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
 // Initialize LEDMatrix instance
-LEDMatrix LM(posPin, 8, negPin, 8);
+LEDMatrix<8, 8> LM(posPin, negPin);
 
 unsigned long interval = 500; // Refresh interval in milliseconds
 
@@ -101,7 +101,7 @@ void ShowSymbol(char input, unsigned long duration = 0)
         memcpy(display, End, 8 * 8 * sizeof(int));
         break;
     }
-    
+
     (duration > 0) ? LM.Symbol(display, duration) : LM.Symbol(display);
 };
 
@@ -109,36 +109,34 @@ void ShowSymbol(char input, unsigned long duration = 0)
 void checkdInput()
 {
     char Command = direction; // Default to current direction
-    if (millis() - lastDebounceTime > debounceDelay)
+
+    char oppDir = 'u'; // Initialize opposite direction with default value
+
+    if (analogRead(A7) > 768)
     {
-        char oppDir = 'u'; // Initialize opposite direction with default value
+        Command = 'l'; // Left
+        oppDir = 'r';
+    }
+    else if (analogRead(A7) < 256)
+    {
+        Command = 'r'; // Right
+        oppDir = 'l';
+    }
+    else if (analogRead(A6) > 768)
+    {
+        Command = 'd'; // Down
+        oppDir = 'u';
+    }
+    else if (analogRead(A6) < 256)
+    {
+        Command = 'u'; // Up
+        oppDir = 'd';
+    }
 
-        if (analogRead(A7) > 768)
-        {
-            Command = 'l'; // Left
-            oppDir = 'r';
-        }
-        else if (analogRead(A7) < 256)
-        {
-            Command = 'r'; // Right
-            oppDir = 'l';
-        }
-        else if (analogRead(A6) > 768)
-        {
-            Command = 'd'; // Down
-            oppDir = 'u';
-        }
-        else if (analogRead(A6) < 256)
-        {
-            Command = 'u'; // Up
-            oppDir = 'd';
-        }
-
-        // Update direction if it's not opposite to the current direction
-        if (Command != oppDir)
-        {
-            direction = Command;
-        }
+    // Update direction if it's not opposite to the current direction
+    if (Command != oppDir)
+    {
+        direction = Command;
     }
 };
 
@@ -292,21 +290,20 @@ void ending()
 
     for (int c = length; c > 0; c--)
     {
-        memory[body[c][0]][body[c][1]][2] = 0;
+        memory[body[c][0]][body[c][1]] = 0;
         LM.Symbol(memory, 250);
     }
 
     // Display end game message
     if (!win)
     {
-        LM.Symbol(End, 10000); // Loss animation
-        ShowSymbol('E');
+        ShowSymbol('E', 10000); // Display loss animation
     }
     else
     {
         for (int i = 0; i < 5; i++)
         {
-            LM.Symbol('S', 500); // Win animation (blink)
+            ShowSymbol('S', 500); // Display win animation (blink)
         }
     }
 
@@ -335,10 +332,10 @@ void loop()
     // Game loop
     if (!end)
     {
-        generateFood(); // Generate new food if needed
-        checkdInput();  // Check user input direction
-        refreshSnake(); // Update snake position and check collisions
-        display();      // Update display based on memory
+        generateFood();    // Generate new food if needed
+        checkdInput();     // Check user input direction
+        refreshSnake();    // Update snake position and check collisions
+        display(interval); // Update display based on memory
     }
     else
     {

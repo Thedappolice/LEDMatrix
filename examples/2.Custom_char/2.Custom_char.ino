@@ -76,25 +76,26 @@ int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
 };
 
-LEDMatrix LM(posPin, 8, negPin, 8); // Initialization
-/*Class name, Object_name(
+LEDMatrix<8, 8> LM(posPin, negPin); // Initialization
+/*
+  Class name <size_of_pos_pins, size_of_neg_pins>, Object_name(
   positive_pin_array[],
-  size of positive_pin_array[],
-  negative_pin_array[],
-  size of positive_pin_array[])
+  negative_pin_array[]
+  )
 */
 
 void setup()
 {
-}
-
-void loop()
-{
   LM.Symbol(Z, 500); // Object_name.Symbol(name_of_character, duration ↓);
-  LM.Symbol(E, 500); //(in millisseconds, optional, defaulted to 1000)
+  LM.Symbol(E, 500); // (in millisseconds, optional, defaulted to 1000)
   LM.Symbol(N, 500);
   LM.Symbol(I, 500);
   LM.Symbol(U, 500);
   LM.Symbol(S, 500);
   LM.Symbol(End);
+}
+
+void loop()
+{
+  
 }

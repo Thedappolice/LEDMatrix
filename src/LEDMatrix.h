@@ -34,8 +34,6 @@ public:
 private:
   size_t NumPins = ColSize + RowSize;
 
-  bool pinState[NumPins] = {false};
-
   int *Pins; // Pointer for dynamically allocated pins
 
   int *OutputArray; // pointer to array for Output

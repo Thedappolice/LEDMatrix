@@ -8,7 +8,7 @@ int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
 int Example_Col[] = {0, 0, 0, 1, 1, 1, 0, 0};
 int Example_Row[] = {1, 1, 1, 0, 0, 0, 1, 1};
 
-LEDMatrix LM<8, 8>(posPin, negPin); // Initialization
+LEDMatrix<8, 8> LM(posPin, negPin); // Initialization
 /*
   Class name <size_of_pos_pins, size_of_neg_pins>, Object_name(
   positive_pin_array[],
