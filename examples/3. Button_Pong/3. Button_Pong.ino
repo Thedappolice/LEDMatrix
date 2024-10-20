@@ -8,7 +8,7 @@ const int NEG_PIN[] = {10, 11, 12, 13, A0, A1, A2, A3};
 const int WALL[] = {0, 0, 1, 1, 1, 0, 0, 0};
 
 // LED Matrix object initialization
-LEDMatrix LM(POS_PIN, 8, NEG_PIN, 8);
+LEDMatrix<8,8> LM(POS_PIN, NEG_PIN);
 
 // Pins for the buttons
 #define P1_LEFT A4
