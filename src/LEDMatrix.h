@@ -11,37 +11,45 @@ public:
   LEDMatrix(int posPins[], int negPins[]);
 
   // Turn on x-Col's, y-Row's LED
-  virtual void turnOn(int xCol, int yRow, int delayTime = 2);
+  virtual void turnOn(int Col, int Row, int delayTime = 2);
 
   // Turn on x-Col by given array, shiftable by +/- n
-  virtual void customCol(int array[8], int xCol, int shift = 0, int delayTime = 2);
+  virtual void customCol(int array[], int Col, int shift = 0, int delayTime = 2);
 
   // Turn on y-Row by given array, shiftable by +/- n
-  virtual void customRow(int array[8], int yRow, int shift = 0, int delayTime = 2);
+  virtual void customRow(int array[], int Row, int shift = 0, int delayTime = 2);
 
   // Turn on entire y-Row
-  virtual void OnRow(int yRow, int delayTime = 2);
+  virtual void OnRow(int Row, int delayTime = 2);
 
   // Turn on entire x-Col
-  virtual void OnCol(int xCol, int delayTime = 2);
+  virtual void OnCol(int Col, int delayTime = 2);
 
   // Check all possible LED
-  virtual void Test();
+  virtual void Test(int delayTime = 100);
 
   // Display custom symbol
   virtual void Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime = 1000);
 
 private:
-  size_t Col; // Use size_t for array sizes
-  size_t Row; // Use size_t for array sizes
-  size_t NumPins;
+  size_t NumPins = ColSize + RowSize;
 
-  int *Pins;      // Pointer for dynamically allocated pins
-  int *OutputCol; // Pointer for dynamically allocated column output
-  int *OutputRow; // Pointer for dynamically allocated row output
+  bool pinState[NumPins] = {false};
 
-  void Clear(int delayTime = 2, int n_Row = -1); // Clears the display, delayable
-  size_t limitingGrid(bool axis, int value);   // Limits inputs to the grid
+  int *Pins; // Pointer for dynamically allocated pins
+
+  int *OutputArray; // pointer to array for Output
+
+  int *pinReq;  // running the pins
+  int *pinPrev; // pin state b4
+
+  // shifting function
+  void adjustShift(int shfit, int array[], bool axis);
+
+  // Limits inputs to the grid
+  size_t limitingGrid(bool axis, int value);
+
+  void setPins();
 };
 
 #include "LEDMatrix.tpp"
