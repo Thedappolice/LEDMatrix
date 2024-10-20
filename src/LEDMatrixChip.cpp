@@ -9,7 +9,7 @@
 
 // Constructor with initialization of the base class LEDMatrix
 LEDMatrixChip::LEDMatrixChip(int CS, int CLK, int MOSI)
-    : LEDMatrix<8, 8>(nullptr, nullptr)  // Pass nullptr or arrays for posPins and negPins
+    : LEDMatrix<8, 8>(nullptr, nullptr) // Pass nullptr or arrays for posPins and negPins
 {
     this->CS = CS;
     this->CLK = CLK;
@@ -31,7 +31,6 @@ LEDMatrixChip::LEDMatrixChip(int CS, int CLK, int MOSI)
     clear(); // Clear the display on initialization
 }
 
-
 void LEDMatrixChip::clear()
 {
     for (int i = 0; i < 8; i++)
@@ -40,43 +39,76 @@ void LEDMatrixChip::clear()
     }
 }
 
-void LEDMatrixChip::turnOn(int xCol, int yRow, int delayTime)
+void LEDMatrixChip::turnOn(int Col, int Row)
 {
-    // Ensure the column and row are within bounds
-    if (xCol >= 0 && xCol < 8 && yRow >= 0 && yRow < 8)
+    // Write to the row register, turning on the specific column bit
+    write_reg(limitingGrid(Row) + 1, 0x01 << limitingGrid(Col));
+}
+
+void LEDMatrixChip::OnCol(int Col)
+{
+    // Turn on the same column for all rows
+    for (int i = 0; i < 8; i++)
     {
-        // Write to the row register, turning on the specific column bit
-        write_reg(yRow + 1, 0x01 << xCol);
-        delay(delayTime); // Optional delay
+        write_reg(i + 1, 0x01 << limitingGrid(Col));
     }
 }
 
-void LEDMatrixChip::OnRow(int yRow, int delayTime)
+void LEDMatrixChip::OnRow(int Row)
 {
-    // Ensure the row is within bounds
-    if (yRow >= 0 && yRow < 8)
+    // Turn on all columns in the given row
+    write_reg(limitingGrid(Row) + 1, 0xFF);
+}
+
+void LEDMatrixChip::customCol(int array[], int Col, int shift)
+{
+    adjustShift(shift, array);
+
+    for (int i = 0; i < 8; i++)
     {
-        // Turn on all columns in the given row
-        write_reg(yRow + 1, 0xFF);
-        delay(delayTime); // Optional delay
+        write_reg(i + 1, (OutputArray[i]) ? 0x01 << limitingGrid(Col) : 0);
     }
 }
 
-void LEDMatrixChip::OnCol(int xCol, int delayTime)
+void LEDMatrixChip::customRow(int array[], int Row, int shift)
 {
-    // Ensure the column is within bounds
-    if (xCol >= 0 && xCol < 8)
+    adjustShift(shift, array);
+    uint8_t rowbyte = 0x00;
+
+    for (int i = 0; i < 8; i++)
     {
-        // Turn on the same column for all rows
-        for (int i = 0; i < 8; i++)
-        {
-            write_reg(i + 1, 0x01 << xCol);
-        }
-        delay(delayTime); // Optional delay
+        rowbyte |= (OutputArray[i]) ? 0x01 << i : 0;
+    }
+    write_reg(limitingGrid(Row) + 1, rowbyte);
+}
+
+void LEDMatrixChip::Test(int delayTime)
+{
+    for (size_t i = 0; i < 8; i++)
+    {
+        OnCol(i);
+        delay(delayTime);
+    }
+
+    clear();
+
+    for (size_t i = 0; i < 8; i++)
+    {
+        OnRow(i);
+        delay(delayTime);
     }
 }
 
-// Private transfer function to send data to the chip
+void LEDMatrixChip::Symbol(int UserMatrix[8][8])
+{
+    for (size_t i = 0; i < 8; i++) // repeating for each RowSize
+    {
+        memcpy(OutputArray, UserMatrix[i], 8 * sizeof(int)); // copy the array directly
+        customRow(OutputArray, i);
+    }
+}
+
+// private :
 void LEDMatrixChip::transfer(uint8_t *p_data, uint8_t len)
 {
     uint8_t mask;
@@ -95,7 +127,7 @@ void LEDMatrixChip::transfer(uint8_t *p_data, uint8_t len)
             delayMicroseconds(1);
             digitalWrite(CLK, HIGH); // Clock in the data
             delayMicroseconds(1);
-            digitalWrite(CLK, LOW);  // Prepare for next bit
+            digitalWrite(CLK, LOW); // Prepare for next bit
 
             mask >>= 1; // Shift the mask to the next bit
         } while (mask != 0); // Continue until all bits are sent
@@ -104,9 +136,44 @@ void LEDMatrixChip::transfer(uint8_t *p_data, uint8_t len)
     digitalWrite(CS, HIGH); // Deselect the chip
 }
 
-// Send a value to a specific register on the chip
 void LEDMatrixChip::write_reg(uint8_t reg, uint8_t value)
 {
     uint8_t tx_data[2] = {reg, value}; // Prepare the register and value
     transfer(tx_data, 2);              // Transfer the data to the chip
+}
+
+void LEDMatrixChip::adjustShift(int shift, int array[])
+{
+    if (shift > 0) // shift upwards/left
+    {
+        for (int i = 0; i < shift; i++) // place 0 at the front
+        {
+            OutputArray[i] = 0;
+        }
+        for (int i = 0; i < (8 - shift); i++) // for the rest of the spaces, copy back given array
+        {
+            OutputArray[i + shift] = array[i];
+        }
+    }
+    else if (shift < 0) // shift downwards/right
+    {
+        for (int i = 0; i < (8 + shift); i++) // skip 'shift' amounts of the given array, then copy the rest
+        {
+            OutputArray[i] = array[i - shift]; // copy valid elements
+        }
+
+        for (int i = (8 + shift); i < 8; i++) // fill zeros in remaining space
+        {
+            OutputArray[i] = 0; // no out-of-bounds issue here
+        }
+    }
+    else if (shift == 0)
+    {
+        memcpy(OutputArray, array, 8 * sizeof(int)); // copy the array directly
+    }
+}
+
+size_t LEDMatrixChip::limitingGrid(int value)
+{
+    return (size_t)constrain(value, 0, 7); // use Arduino's built-in constrain() function
 }

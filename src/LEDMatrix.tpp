@@ -44,6 +44,42 @@ void LEDMatrix<ColSize, RowSize>::turnOn(int Col, int Row, int delayTime)
 }
 
 template <size_t ColSize, size_t RowSize>
+void LEDMatrix<ColSize, RowSize>::OnCol(int Col, int delayTime)
+{
+  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
+  {
+    pinReq[i] = 1;
+  }
+
+  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
+  {
+    pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
+  }
+
+  setPins(); // run the pins
+
+  delay(delayTime);
+}
+
+template <size_t ColSize, size_t RowSize>
+void LEDMatrix<ColSize, RowSize>::OnRow(int Row, int delayTime)
+{
+  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
+  {
+    pinReq[i] = (i == limitingGrid(1, Row)) ? 1 : 0;
+  }
+
+  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
+  {
+    pinReq[i + RowSize] = 0;
+  }
+
+  setPins(); // run the pins
+
+  delay(delayTime);
+}
+
+template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::customCol(int array[], int Col, int shift, int delayTime)
 {
   adjustShift(shift, array, 0); // shifting function
@@ -83,41 +119,6 @@ void LEDMatrix<ColSize, RowSize>::customRow(int array[], int Row, int shift, int
   delay(delayTime);
 }
 
-template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::OnCol(int Col, int delayTime)
-{
-  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
-  {
-    pinReq[i] = 1;
-  }
-
-  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
-  {
-    pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
-  }
-
-  setPins(); // run the pins
-
-  delay(delayTime);
-}
-
-template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::OnRow(int Row, int delayTime)
-{
-  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
-  {
-    pinReq[i] = (i == limitingGrid(1, Row)) ? 1 : 0;
-  }
-
-  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
-  {
-    pinReq[i + RowSize] = 0;
-  }
-
-  setPins(); // run the pins
-
-  delay(delayTime);
-}
 
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::Test(int delayTime)
