@@ -144,6 +144,7 @@ void LEDMatrixChip::write_reg(uint8_t reg, uint8_t value)
 
 void LEDMatrixChip::adjustShift(int shift, int array[])
 {
+    shift = constrain(shift, -8, 8);  // Prevent out-of-bound shifts
     if (shift > 0) // shift upwards/left
     {
         for (int i = 0; i < shift; i++) // place 0 at the front

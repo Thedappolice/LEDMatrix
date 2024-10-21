@@ -119,7 +119,6 @@ void LEDMatrix<ColSize, RowSize>::customRow(int array[], int Row, int shift, int
   delay(delayTime);
 }
 
-
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::Test(int delayTime)
 {
@@ -157,16 +156,7 @@ void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsig
     {
       memcpy(OutputArray, UserMatrix[i], ColSize * sizeof(int)); // copy the array directly
 
-      for (size_t j = 0; j < RowSize; j++) // recording what arrangement of positive pins
-      {
-        pinReq[i] = (OutputArray[j]) ? 1 : 0;
-      }
-
-      for (size_t j = 0; j < ColSize; j++) // recording what arrangement of negative pins
-      {
-        pinReq[j + RowSize] = 1;
-      }
-      pinReq[i + RowSize] = 0;
+      customCol(OutputArray, i);
 
       setPins(); // run the pins
 
@@ -188,6 +178,7 @@ template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::adjustShift(int shift, int array[], bool axis)
 {
   int check = (!axis) ? ColSize : RowSize;
+  shift = constrain(shift, -check, check);  // Prevent out-of-bound shifts
   if (shift > 0) // shift upwards/left
   {
     for (int i = 0; i < shift; i++) // place 0 at the front
