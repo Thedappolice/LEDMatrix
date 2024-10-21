@@ -1,3 +1,5 @@
+//this program uses Arduino Nano
+
 #include <Dis7Seg.h>
 
 #define buzzerPin A5

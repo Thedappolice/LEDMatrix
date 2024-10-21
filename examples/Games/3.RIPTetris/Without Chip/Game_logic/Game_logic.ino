@@ -1,4 +1,4 @@
-// this program uses the teensy 4.1 board
+// this program uses teensy 4.1 board
 
 #include <math.h>
 

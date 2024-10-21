@@ -43,12 +43,6 @@ private:
     // Private methods for handling chip communication
     void transfer(uint8_t *p_data, uint8_t len); // Private transfer function to send data to the chip
     void write_reg(uint8_t reg, uint8_t value);  // Send a value to a specific register on the chip
-
-    // shifting function
-    void adjustShift(int shfit, int array[]);
-
-    // Limits inputs to the grid
-    size_t limitingGrid(int value);
 };
 
 #endif // LEDMATRIXCHIP_H

@@ -1,3 +1,5 @@
+// this program uses Arduino Nano
+
 #include <math.h>
 
 #include <Dis7seg.h>

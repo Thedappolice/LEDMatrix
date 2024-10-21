@@ -1,3 +1,5 @@
+//this program uses Arduino Nano
+
 #include <LEDMatrix.h>
 
 // Pin configurations

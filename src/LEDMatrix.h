@@ -39,17 +39,16 @@ private:
   int *pinReq;  // running the pins
   int *pinPrev; // pin state b4
 
-  // shifting function
-  void adjustShift(int shfit, int array[], bool axis);
-
-  // Limits inputs to the grid
-  size_t limitingGrid(bool axis, int value);
-
   void setPins();
 
-protected:
-
+protected:          // let inheritance access the array
   int *OutputArray; // pointer to array for Output
+
+  // shifting function
+  void adjustShift(int shfit, int array[], bool axis = 0);
+
+  // Limits inputs to the grid
+  size_t limitingGrid(int value, bool axis = 0);
 };
 
 #include "LEDMatrix.tpp"

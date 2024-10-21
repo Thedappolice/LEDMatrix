@@ -168,7 +168,7 @@ void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsig
 // private:
 
 template <size_t ColSize, size_t RowSize>
-size_t LEDMatrix<ColSize, RowSize>::limitingGrid(bool axis, int value)
+size_t LEDMatrix<ColSize, RowSize>::limitingGrid(int value, bool axis)
 {
   int check = (!axis) ? ColSize : RowSize;
   return (size_t)constrain(value, 0, check - 1); // use Arduino's built-in constrain() function
@@ -178,8 +178,8 @@ template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::adjustShift(int shift, int array[], bool axis)
 {
   int check = (!axis) ? ColSize : RowSize;
-  shift = constrain(shift, -check, check);  // Prevent out-of-bound shifts
-  if (shift > 0) // shift upwards/left
+  shift = constrain(shift, -check, check); // Prevent out-of-bound shifts
+  if (shift > 0)                           // shift upwards/left
   {
     for (int i = 0; i < shift; i++) // place 0 at the front
     {

@@ -1,14 +1,16 @@
+// this program uses Arduino Nano
+
 #include <LEDMatrix.h>
 
 // Pin configurations for LED Matrix
- int POS_PIN[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int POS_PIN[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int NEG_PIN[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
 // Wall pattern array
- int WALL[] = {0, 0, 1, 1, 1, 0, 0, 0};
+int WALL[] = {0, 0, 1, 1, 1, 0, 0, 0};
 
 // LED Matrix object initialization
-LEDMatrix<8,8> LM(POS_PIN, NEG_PIN);
+LEDMatrix<8, 8> LM(POS_PIN, NEG_PIN);
 
 // Pins for the buttons
 #define P1_LEFT A4
@@ -39,7 +41,6 @@ struct Ball
 };
 
 Ball ball = {(int)random(3, 5), (int)random(3, 5), random(0, 2) == 0, random(0, 2) == 0, 1000, 0, false};
-
 
 int memory[8][8] = {{0}};
 
