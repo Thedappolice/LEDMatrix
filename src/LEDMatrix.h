@@ -36,8 +36,6 @@ private:
 
   int *Pins; // Pointer for dynamically allocated pins
 
-  int *OutputArray; // pointer to array for Output
-
   int *pinReq;  // running the pins
   int *pinPrev; // pin state b4
 
@@ -48,6 +46,10 @@ private:
   size_t limitingGrid(bool axis, int value);
 
   void setPins();
+
+protected:
+
+  int *OutputArray; // pointer to array for Output
 };
 
 #include "LEDMatrix.tpp"

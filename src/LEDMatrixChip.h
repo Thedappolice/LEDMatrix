@@ -10,6 +10,9 @@ public:
     // Constructor
     LEDMatrixChip(int CS, int CLK, int MOSI);
 
+    //clean up display
+    void clear();
+
     // Turn on x-Col's, y-Row's LED
     void turnOn(int Col, int Row);
 

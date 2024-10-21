@@ -1,14 +1,14 @@
+// this program uses the teensy 4.1 board
+
 #include <math.h>
 
-bool scoring = true;
 int score = 0;
-
-#define reset_pin 36
 
 #define ROTATE_PIN 31
 #define LEFT_PIN 32
 #define RIGHT_PIN 33
 #define DOWN_PIN 30
+
 #include <LEDMatrix.h>
 
 // Pin configurations of 1st Led matrix
@@ -347,12 +347,9 @@ void scanAndClearGrid()
             }
         }
 
-        if (scoring) // if scoring is enabled
-        {
-            int clearedRows = arrayCount + 1;         // rows cleared
-            score += (pow(clearedRows, clearedRows)); // add the score
-            sendScore(score);
-        }
+        int clearedRows = arrayCount + 1;         // rows cleared
+        score += (pow(clearedRows, clearedRows)); // add the score
+        sendScore(score);
     }
 };
 

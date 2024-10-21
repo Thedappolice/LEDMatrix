@@ -1,11 +1,11 @@
 #include <LEDMatrix.h>
 
 // Pin configurations for LED Matrix
-const int POS_PIN[] = {2, 3, 4, 5, 6, 7, 8, 9};
-const int NEG_PIN[] = {10, 11, 12, 13, A0, A1, A2, A3};
+ int POS_PIN[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int NEG_PIN[] = {10, 11, 12, 13, A0, A1, A2, A3};
 
 // Wall pattern array
-const int WALL[] = {0, 0, 1, 1, 1, 0, 0, 0};
+ int WALL[] = {0, 0, 1, 1, 1, 0, 0, 0};
 
 // LED Matrix object initialization
 LEDMatrix<8,8> LM(POS_PIN, NEG_PIN);
@@ -15,7 +15,6 @@ LEDMatrix<8,8> LM(POS_PIN, NEG_PIN);
 #define P1_RIGHT A5
 #define P2_LEFT A7
 #define P2_RIGHT A6
-
 
 struct Player
 {
@@ -39,7 +38,8 @@ struct Ball
   bool delayed;
 };
 
-Ball ball = {random(3, 5), random(3, 5), random(0, 2) == 0, random(0, 2) == 0, 1000, 0, false};
+Ball ball = {(int)random(3, 5), (int)random(3, 5), random(0, 2) == 0, random(0, 2) == 0, 1000, 0, false};
+
 
 int memory[8][8] = {{0}};
 
@@ -254,20 +254,20 @@ void endGame(bool isP1)
   }
   for (int i = 0; i < 3; i++)
   {
-    showSymbol('P');
-    showSymbol(isP1 ? '1' : '2');
-    showSymbol('W');
-    showSymbol('I');
-    showSymbol('N');
+    ShowSymbol('P');
+    ShowSymbol(isP1 ? '1' : '2');
+    ShowSymbol('W');
+    ShowSymbol('I');
+    ShowSymbol('N');
   }
   exit(1);
 }
 
 void setup()
 {
-  showSymbol('3', 1000);
-  showSymbol('2', 1000);
-  showSymbol('1', 1000);
+  ShowSymbol('3', 1000);
+  ShowSymbol('2', 1000);
+  ShowSymbol('1', 1000);
   for (int i = 0; i < 20; i++)
   {
     LM.turnOn(ball.y, ball.x);
