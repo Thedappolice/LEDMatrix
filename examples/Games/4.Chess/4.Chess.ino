@@ -7,6 +7,24 @@ char board[8][8] =
   
 };
 
+bool special_move(bool isPawn, char[2] coords = nullptr)
+{
+bool answer = false;
+switch(isPawn)
+{
+case true :
+if()
+{
+
+}
+break;
+case false:
+
+break;
+}
+return answer;
+}
+
 void
 setup()
 {
