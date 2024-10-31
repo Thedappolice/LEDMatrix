@@ -30,14 +30,14 @@ struct piece
 // Initialize the array of pieces
 piece Allpeices[32] = {
     // White pieces
-    piece(1, FOUR_DIR_CARDINAL, 1, 1, 1, "A1", 'R'), // White rook
-    piece(1, KNIGHT_L, 0, 0, 1, "B1", 'N'),          // White knight
-    piece(1, FOUR_DIR_DIAGONAL, 1, 0, 1, "C1", 'B'), // White bishop
-    piece(1, EIGHT_DIR, 1, 0, 1, "D1", 'Q'),         // White queen
-    piece(1, EIGHT_DIR, 0, 1, 1, "E1", 'K'),         // White king
-    piece(1, FOUR_DIR_DIAGONAL, 1, 0, 1, "F1", 'B'), // White bishop
-    piece(1, KNIGHT_L, 0, 0, 1, "G1", 'N'),          // White knight
-    piece(1, FOUR_DIR_CARDINAL, 1, 1, 1, "H1", 'R'), // White rook
+    R piece(1, FOUR_DIR_CARDINAL, 1, 1, 1, "A1", 'R'), // White rook
+    N piece(1, KNIGHT_L,          0, 0, 1, "B1", 'N'),          // White knight
+    B piece(1, FOUR_DIR_DIAGONAL, 1, 0, 1, "C1", 'B'), // White bishop
+    Q piece(1, EIGHT_DIR,         1, 0, 1, "D1", 'Q'),         // White queen
+    K piece(1, EIGHT_DIR,         0, 1, 1, "E1", 'K'),         // White king
+    B piece(1, FOUR_DIR_DIAGONAL, 1, 0, 1, "F1", 'B'), // White bishop
+    N piece(1, KNIGHT_L,          0, 0, 1, "G1", 'N'),          // White knight
+    R piece(1, FOUR_DIR_CARDINAL, 1, 1, 1, "H1", 'R'), // White rook
 
     // White pawns
     A piece(1, UP_ONLY, 0, 1, 1, "A2"), // White pawn A2
@@ -51,12 +51,12 @@ piece Allpeices[32] = {
 
     // Black pieces
     r piece(0, FOUR_DIR_CARDINAL, 1, 1, 1, "A8"), // Black rook
-    n piece(0, KNIGHT_L, 0, 0, 1, "B8"),          // Black knight
+    n piece(0, KNIGHT_L,          0, 0, 1, "B8"),          // Black knight
     b piece(0, FOUR_DIR_DIAGONAL, 1, 0, 1, "C8"), // Black bishop
-    q piece(0, EIGHT_DIR, 1, 0, 1, "D8"),         // Black queen
-    k piece(0, EIGHT_DIR, 0, 1, 1, "E8"),         // Black king
+    q piece(0, EIGHT_DIR,         1, 0, 1, "D8"),         // Black queen
+    k piece(0, EIGHT_DIR,         0, 1, 1, "E8"),         // Black king
     b piece(0, FOUR_DIR_DIAGONAL, 1, 0, 1, "F8"), // Black bishop
-    n piece(0, KNIGHT_L, 0, 0, 1, "G8", 'n'),          // Black knight
+    n piece(0, KNIGHT_L,          0, 0, 1, "G8", 'n'),          // Black knight
     r piece(0, FOUR_DIR_CARDINAL, 1, 1, 1, "H8"), // Black rook
 
     // Black pawns
