@@ -40,32 +40,32 @@ piece Allpeices[32] = {
     piece(1, FOUR_DIR_CARDINAL, 1, 1, 1, "H1", 'R'), // White rook
 
     // White pawns
-    piece(1, UP_ONLY, 0, 1, 1, "A2", 'A'), // White pawn A2
-    piece(1, UP_ONLY, 0, 1, 1, "B2", 'B'), // White pawn B2
-    piece(1, UP_ONLY, 0, 1, 1, "C2", 'C'), // White pawn C2
-    piece(1, UP_ONLY, 0, 1, 1, "D2", 'D'), // White pawn D2
-    piece(1, UP_ONLY, 0, 1, 1, "E2", 'E'), // White pawn E2
-    piece(1, UP_ONLY, 0, 1, 1, "F2", 'F'), // White pawn F2
-    piece(1, UP_ONLY, 0, 1, 1, "G2", 'G'), // White pawn G2
-    piece(1, UP_ONLY, 0, 1, 1, "H2", 'H'), // White pawn H2
+    A piece(1, UP_ONLY, 0, 1, 1, "A2"), // White pawn A2
+    B piece(1, UP_ONLY, 0, 1, 1, "B2"), // White pawn B2
+    C piece(1, UP_ONLY, 0, 1, 1, "C2"), // White pawn C2
+    D piece(1, UP_ONLY, 0, 1, 1, "D2"), // White pawn D2
+    E piece(1, UP_ONLY, 0, 1, 1, "E2"), // White pawn E2
+    F piece(1, UP_ONLY, 0, 1, 1, "F2"), // White pawn F2
+    G piece(1, UP_ONLY, 0, 1, 1, "G2"), // White pawn G2
+    H piece(1, UP_ONLY, 0, 1, 1, "H2"), // White pawn H2
 
     // Black pieces
-    piece(0, FOUR_DIR_CARDINAL, 1, 1, 1, "A8", 'r'), // Black rook
-    piece(0, KNIGHT_L, 0, 0, 1, "B8", 'n'),          // Black knight
-    piece(0, FOUR_DIR_DIAGONAL, 1, 0, 1, "C8", 'b'), // Black bishop
-    piece(0, EIGHT_DIR, 1, 0, 1, "D8", 'q'),         // Black queen
-    piece(0, EIGHT_DIR, 0, 1, 1, "E8", 'k'),         // Black king
-    piece(0, FOUR_DIR_DIAGONAL, 1, 0, 1, "F8", 'b'), // Black bishop
-    piece(0, KNIGHT_L, 0, 0, 1, "G8", 'n'),          // Black knight
-    piece(0, FOUR_DIR_CARDINAL, 1, 1, 1, "H8", 'r'), // Black rook
+    r piece(0, FOUR_DIR_CARDINAL, 1, 1, 1, "A8"), // Black rook
+    n piece(0, KNIGHT_L, 0, 0, 1, "B8"),          // Black knight
+    b piece(0, FOUR_DIR_DIAGONAL, 1, 0, 1, "C8"), // Black bishop
+    q piece(0, EIGHT_DIR, 1, 0, 1, "D8"),         // Black queen
+    k piece(0, EIGHT_DIR, 0, 1, 1, "E8"),         // Black king
+    b piece(0, FOUR_DIR_DIAGONAL, 1, 0, 1, "F8"), // Black bishop
+    n piece(0, KNIGHT_L, 0, 0, 1, "G8", 'n'),          // Black knight
+    r piece(0, FOUR_DIR_CARDINAL, 1, 1, 1, "H8"), // Black rook
 
     // Black pawns
-    piece(0, UP_ONLY, 0, 1, 1, "A7", 'a'), // Black pawn A7
-    piece(0, UP_ONLY, 0, 1, 1, "B7", 'b'), // Black pawn B7
-    piece(0, UP_ONLY, 0, 1, 1, "C7", 'c'), // Black pawn C7
-    piece(0, UP_ONLY, 0, 1, 1, "D7", 'd'), // Black pawn D7
-    piece(0, UP_ONLY, 0, 1, 1, "E7", 'e'), // Black pawn E7
-    piece(0, UP_ONLY, 0, 1, 1, "F7", 'f'), // Black pawn F7
-    piece(0, UP_ONLY, 0, 1, 1, "G7", 'g'), // Black pawn G7
-    piece(0, UP_ONLY, 0, 1, 1, "H7", 'h')  // Black pawn H7
+    a piece(0, UP_ONLY, 0, 1, 1, "A7", 'a'), // Black pawn A7
+    b piece(0, UP_ONLY, 0, 1, 1, "B7", 'b'), // Black pawn B7
+    c piece(0, UP_ONLY, 0, 1, 1, "C7", 'c'), // Black pawn C7
+    d piece(0, UP_ONLY, 0, 1, 1, "D7", 'd'), // Black pawn D7
+    e piece(0, UP_ONLY, 0, 1, 1, "E7", 'e'), // Black pawn E7
+    f piece(0, UP_ONLY, 0, 1, 1, "F7", 'f'), // Black pawn F7
+    g piece(0, UP_ONLY, 0, 1, 1, "G7", 'g'), // Black pawn G7
+    h piece(0, UP_ONLY, 0, 1, 1, "H7", 'h')  // Black pawn H7
 };
