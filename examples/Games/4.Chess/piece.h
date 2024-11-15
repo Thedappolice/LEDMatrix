@@ -56,7 +56,7 @@ piece Allpeices[32] = {
     q piece(0, EIGHT_DIR,         1, 0, 1, "D8"),         // Black queen
     k piece(0, EIGHT_DIR,         0, 1, 1, "E8"),         // Black king
     b piece(0, FOUR_DIR_DIAGONAL, 1, 0, 1, "F8"), // Black bishop
-    n piece(0, KNIGHT_L,          0, 0, 1, "G8", 'n'),          // Black knight
+    n piece(0, KNIGHT_L,          0, 0, 1, "G8"),          // Black knight
     r piece(0, FOUR_DIR_CARDINAL, 1, 1, 1, "H8"), // Black rook
 
     // Black pawns
