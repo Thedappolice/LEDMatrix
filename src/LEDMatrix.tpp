@@ -147,7 +147,7 @@ void LEDMatrix<ColSize, RowSize>::Test(int delayTime)
 }
 
 template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime)
+void LEDMatrix<ColSize, RowSize>::Symbol( int UserMatrix[RowSize][ColSize], unsigned long showTime)
 {
   unsigned long before = millis();
   while (millis() - before < showTime)

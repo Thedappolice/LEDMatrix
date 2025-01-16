@@ -1,4 +1,4 @@
-//this program uses Arduino Nano
+// this program uses Arduino Nano
 
 #include <Dis7Seg.h>
 
@@ -84,23 +84,34 @@ void recieveSerial()
 
 void updateScoreDisplay()
 {
-    // Fill the array with digits from right to left (thousands, hundreds, tens, units)
-    for (int i = 3; i >= 0; i--)
+    // Handle the special case where score is 0
+    if (score == 0)
     {
-        scoreNum[i] = score % 10; // Get the last digit
-        score /= 10;              // Remove the last digit from input
+        scoreNum[3] = 0; // Display '0' in the units place
+        for (int i = 0; i < 3; i++)
+            scoreNum[i] = -1; // Blank all other digits
     }
-
-    // Handle leading zeros by replacing them with -1 to leave the digit blank
-    for (int i = 0; i < 3; i++)
+    else
     {
-        if (scoreNum[i] == 0 && (i == 0 || scoreNum[i - 1] == -1))
+        // Temporary variable to hold the score
+        int tempScore = score;
+        bool leadingZero = true;
+
+        // Extract digits and handle leading zeros
+        for (int i = 3; i >= 0; i--)
         {
-            scoreNum[i] = -1; // Set leading zeroes to -1 (blank)
+            scoreNum[i] = tempScore % 10;
+            tempScore /= 10;
+
+            if (scoreNum[i] == 0 && leadingZero)
+                scoreNum[i] = -1; // Blank leading zero
+            else
+                leadingZero = false;
         }
     }
-    // Update the 7-segment display with the new score
-    dis.scan(scoreNum); // Refresh the display with updated score
+
+    // Update the 7-segment display
+    dis.scan(scoreNum);
 }
 
 void setup()

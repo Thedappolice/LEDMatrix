@@ -29,7 +29,7 @@ public:
   virtual void Test(int delayTime = 100);
 
   // Display custom symbol
-  virtual void Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime = 1000);
+  virtual void Symbol( int UserMatrix[RowSize][ColSize], unsigned long showTime = 1000);
 
 private:
   size_t NumPins = ColSize + RowSize;
