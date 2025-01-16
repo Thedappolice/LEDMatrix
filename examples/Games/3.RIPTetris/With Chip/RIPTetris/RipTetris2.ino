@@ -5,11 +5,24 @@
 #define LEFT_PIN 32
 #define RIGHT_PIN 33
 #define DOWN_PIN 30
+#define RESET_PIN 34
 
 // Grid Constants
 #define GRID_WIDTH 8                      // Number of columns in the grid
 #define GRID_HEIGHT (GRID_WIDTH * 2)      // Total grid height
 #define CHECKING_HEIGHT (GRID_HEIGHT + 2) // Includes extra rows for checking overflows
+
+#include <LEDMatrix.h>
+
+// Pin configurations of 1st Led matrix
+int posPintop[] = {37, 13, 16, 40, 23, 17, 22, 19};
+int negPintop[] = {41, 21, 20, 38, 18, 39, 14, 15};
+// Pin configurations of 2nd Led matrix
+int posPinbot[] = {9, 4, 29, 6, 10, 28, 11, 26};
+int negPinbot[] = {5, 12, 25, 8, 27, 7, 3, 2};
+// Initialize LEDMatrix instance
+LEDMatrix<8, 8> LMtop(posPintop, negPintop);
+LEDMatrix<8, 8> LMbot(posPinbot, negPinbot);
 
 // Game Data Structures
 typedef struct
@@ -51,6 +64,104 @@ void setup();
 void loop();
 
 /// --- Function Definitions ---
+
+void alterShape(int mode)
+{
+    int newCoordinates[4][2];
+
+    // Calculate the new position
+    for (int i = 0; i < 4; i++)
+    {
+        newCoordinates[i][0] = currentShape.coordinates[i][0];
+        newCoordinates[i][1] = currentShape.coordinates[i][1];
+
+        if (mode == -1)
+        { // Move left
+            newCoordinates[i][1] -= 1;
+        }
+        else if (mode == 1)
+        { // Move right
+            newCoordinates[i][1] += 1;
+        }
+        else if (mode == 0)
+        { // Move down
+            newCoordinates[i][0] += 1;
+        }
+        else if (mode == 3)
+        { // Rotate
+            int y = currentShape.coordinates[0][0];
+            int x = currentShape.coordinates[0][1];
+            newCoordinates[i][0] = y - (currentShape.coordinates[i][1] - x);
+            newCoordinates[i][1] = x + (currentShape.coordinates[i][0] - y);
+        }
+    }
+
+    // Check for collisions
+    bool validMove = true;
+    for (int i = 0; i < 4; i++)
+    {
+        int y = newCoordinates[i][0];
+        int x = newCoordinates[i][1];
+
+        if (y >= CHECKING_HEIGHT || x < 0 || x >= GRID_WIDTH || stableMemory[y][x])
+        {
+            validMove = false;
+            break;
+        }
+    }
+
+    // Apply the new position if valid
+    if (validMove)
+    {
+        memcpy(currentShape.coordinates, newCoordinates, sizeof(newCoordinates));
+        if (mode == 0)
+        { // Check for locking
+            for (int i = 0; i < 4; i++)
+            {
+                if (currentShape.coordinates[i][0] == CHECKING_HEIGHT - 1 || stableMemory[currentShape.coordinates[i][0] + 1][currentShape.coordinates[i][1]])
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        stableMemory[currentShape.coordinates[j][0]][currentShape.coordinates[j][1]] = 1;
+                    }
+                    currentShape.active = false;
+                    scanAndClearGrid();
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void genShape()
+{
+    if (!currentShape.active)
+    {
+        // Define possible shapes as relative coordinates
+        const int shapes[7][4][2] = {
+            {{0, 0}, {0, 1}, {1, 0}, {1, 1}},  // O shape
+            {{0, 0}, {0, 1}, {0, 2}, {0, 3}},  // I shape
+            {{0, 0}, {1, 0}, {1, 1}, {1, 2}},  // J shape
+            {{0, 0}, {1, 0}, {0, 1}, {0, 2}},  // L shape
+            {{0, 0}, {0, 1}, {1, 1}, {1, 2}},  // S shape
+            {{0, 0}, {0, 1}, {1, 0}, {1, -1}}, // Z shape
+            {{0, 0}, {0, 1}, {1, 0}, {0, -1}}  // T shape
+        };
+
+        // Randomly select a shape
+        int randomIndex = random(0, 7);
+        memcpy(currentShape.shape, shapes[randomIndex], sizeof(currentShape.shape));
+
+        // Initialize starting position
+        for (int i = 0; i < 4; i++)
+        {
+            currentShape.coordinates[i][0] = currentShape.shape[i][0] + 1; // Start near the top
+            currentShape.coordinates[i][1] = currentShape.shape[i][1] + GRID_WIDTH / 2;
+        }
+
+        currentShape.active = true;
+    }
+}
 
 // Clears a specific row in the stable memory
 void clearRow(int row)
