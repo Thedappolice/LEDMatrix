@@ -42,7 +42,7 @@ void LEDMatrixChip::clear()
 void LEDMatrixChip::turnOn(int Col, int Row)
 {
     // Write to the row register, turning on the specific column bit
-    write_reg(limitingGrid(Row) + 1, 0x01 << limitingGrid(Col));
+    write_reg(limitingGrid(1, Row) + 1, 0x01 << limitingGrid(0, Col));
 }
 
 void LEDMatrixChip::OnCol(int Col)
@@ -50,36 +50,36 @@ void LEDMatrixChip::OnCol(int Col)
     // Turn on the same column for all rows
     for (int i = 0; i < 8; i++)
     {
-        write_reg(i + 1, 0x01 << limitingGrid(Col));
+        write_reg(i + 1, 0x01 << limitingGrid(0, Col));
     }
 }
 
 void LEDMatrixChip::OnRow(int Row)
 {
     // Turn on all columns in the given row
-    write_reg(limitingGrid(Row) + 1, 0xFF);
+    write_reg(limitingGrid(1, Row) + 1, 0xFF);
 }
 
 void LEDMatrixChip::customCol(int array[], int Col, int shift)
 {
-    adjustShift(shift, array);
+    adjustShift(shift, array, 0);
 
     for (int i = 0; i < 8; i++)
     {
-        write_reg(i + 1, (OutputArray[i]) ? 0x01 << limitingGrid(Col) : 0);
+        write_reg(i + 1, (OutputArray[i]) ? 0x01 << limitingGrid(0, Col) : 0);
     }
 }
 
 void LEDMatrixChip::customRow(int array[], int Row, int shift)
 {
-    adjustShift(shift, array);
+    adjustShift(shift, array, 1);
     uint8_t rowbyte = 0x00;
 
     for (int i = 0; i < 8; i++)
     {
         rowbyte |= (OutputArray[i]) ? 0x01 << i : 0;
     }
-    write_reg(limitingGrid(Row) + 1, rowbyte);
+    write_reg(limitingGrid(1, Row) + 1, rowbyte);
 }
 
 void LEDMatrixChip::Test(int delayTime)

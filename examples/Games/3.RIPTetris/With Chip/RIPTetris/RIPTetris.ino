@@ -87,6 +87,9 @@ unsigned long inputInterval = 100; // Interval between inputs (ms)
 unsigned long prev = 0;            // Previous time for game interval
 unsigned long interval = 500;      // Time between automatic block drops (ms)
 
+// Track the previous state of the rotate button
+bool previousRotateState = LOW;
+
 // Game State Variables
 
 bool end = false;   // Whether the game is over
@@ -103,7 +106,7 @@ bool ended = false; // Whether the end animation has been shown
 void ShowSymbol(LEDMatrix<8, 8> &LM, char input, unsigned long duration = 0)
 {
     // Predefined symbols
-    const int symbols[4][8][8] = {
+    int symbols[4][8][8] = {
         {// Symbol '1'
          {0, 0, 0, 1, 1, 0, 0, 0},
          {0, 0, 1, 1, 1, 0, 0, 0},
@@ -222,7 +225,8 @@ void alterShape(int mode)
         {
             for (int i = 0; i < 4; i++)
             {
-                if (currentShape.coordinates[i][0] == CHECKING_HEIGHT - 1 || grid.stable[currentShape.coordinates[i][0] + 1][currentShape.coordinates[i][1]])
+                if (currentShape.coordinates[i][0] == CHECKING_HEIGHT - 1 ||
+                    grid.stable[currentShape.coordinates[i][0] + 1][currentShape.coordinates[i][1]])
                 {
                     // Lock the shape into the stable grid
                     for (int j = 0; j < 4; j++)
@@ -360,10 +364,6 @@ void checkInput()
     if (digitalRead(DOWN_PIN) == HIGH)
     {
         alterShape(0); // Move Down
-    }
-    if (digitalRead(ROTATE_PIN) == HIGH)
-    {
-        alterShape(3); // Rotate
     }
     if (digitalRead(RESET_PIN) == HIGH)
     {

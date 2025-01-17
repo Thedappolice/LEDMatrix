@@ -71,6 +71,9 @@ unsigned long inputInterval = 100; // Interval between inputs (ms)
 unsigned long prev = 0;            // Previous time for game interval
 unsigned long interval = 500;      // Time between automatic block drops (ms)
 
+// Track the previous state of the rotate button
+bool previousRotateState = LOW;
+
 // Game State Variables
 int score = 0;      // Current score
 bool end = false;   // Whether the game is over
@@ -87,7 +90,7 @@ bool ended = false; // Whether the end animation has been shown
 void ShowSymbol(LEDMatrix<8, 8> &LM, char input, unsigned long duration = 0)
 {
     // Predefined symbols
-    const int symbols[4][8][8] = {
+    int symbols[4][8][8] = {
         {// Symbol '1'
          {0, 0, 0, 1, 1, 0, 0, 0},
          {0, 0, 1, 1, 1, 0, 0, 0},
@@ -335,6 +338,19 @@ void scanAndClearGrid()
  */
 void checkInput()
 {
+    // Read the current state of the rotation button
+    bool currentRotateState = digitalRead(ROTATE_PIN);
+
+    // Detect rising edge: from LOW to HIGH
+    if (currentRotateState == HIGH && previousRotateState == LOW)
+    {
+        alterShape(3); // Rotate once
+    }
+
+    // Update the previous state
+    previousRotateState = currentRotateState;
+
+    // Other button inputs (no changes needed)
     if (digitalRead(LEFT_PIN) == HIGH)
     {
         alterShape(-1); // Move Left
@@ -346,10 +362,6 @@ void checkInput()
     if (digitalRead(DOWN_PIN) == HIGH)
     {
         alterShape(0); // Move Down
-    }
-    if (digitalRead(ROTATE_PIN) == HIGH)
-    {
-        alterShape(3); // Rotate
     }
     if (digitalRead(RESET_PIN) == HIGH)
     {

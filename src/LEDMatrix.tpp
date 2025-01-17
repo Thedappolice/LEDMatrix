@@ -1,223 +1,199 @@
 #include "LEDMatrix.h"
 
-// Implementations inside the header
+/**
+ * @brief Constructor to initialize the LED matrix pins.
+ */
 template <size_t ColSize, size_t RowSize>
 LEDMatrix<ColSize, RowSize>::LEDMatrix(int posPins[], int negPins[])
 {
-  Pins = new int[NumPins];             // record all pins in order from pos to neg
-  for (size_t i = 0; i < ColSize; i++) // record all positive pins
-  {
+  // Assign positive and negative pins
+  for (size_t i = 0; i < ColSize; i++)
     Pins[i] = posPins[i];
-  }
-  for (size_t i = 0; i < RowSize; i++) // record all negative pins
-  {
+  for (size_t i = 0; i < RowSize; i++)
     Pins[ColSize + i] = negPins[i];
-  }
 
-  for (size_t i = 0; i < NumPins; i++) // set all pins to output
-  {
+  // Set all pins to OUTPUT mode
+  for (size_t i = 0; i < NumPins; i++)
     pinMode(Pins[i], OUTPUT);
-  }
-
-  OutputArray = new int[max(ColSize, RowSize)]; // output row placeholder
-
-  pinReq = new int[NumPins];  // for digitalWrite() requests
-  pinPrev = new int[NumPins]; // record the previous pin state
 }
 
+/**
+ * @brief Turn on a specific LED at (Col, Row).
+ */
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::turnOn(int Col, int Row, int delayTime)
 {
-  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
-  {
+  for (size_t i = 0; i < RowSize; i++)
     pinReq[i] = (i == limitingGrid(0, Row)) ? 1 : 0;
-  }
 
-  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
-  {
+  for (size_t i = 0; i < ColSize; i++)
     pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
-  }
 
-  setPins(); // run the pins
-
+  setPins();
   delay(delayTime);
 }
 
+/**
+ * @brief Turn on an entire column of LEDs.
+ */
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::OnCol(int Col, int delayTime)
 {
-  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
-  {
+  for (size_t i = 0; i < RowSize; i++)
     pinReq[i] = 1;
-  }
 
-  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
-  {
+  for (size_t i = 0; i < ColSize; i++)
     pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
-  }
 
-  setPins(); // run the pins
-
+  setPins();
   delay(delayTime);
 }
 
+/**
+ * @brief Turn on an entire row of LEDs.
+ */
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::OnRow(int Row, int delayTime)
 {
-  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
-  {
+  for (size_t i = 0; i < RowSize; i++)
     pinReq[i] = (i == limitingGrid(1, Row)) ? 1 : 0;
-  }
 
-  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
-  {
+  for (size_t i = 0; i < ColSize; i++)
     pinReq[i + RowSize] = 0;
-  }
 
-  setPins(); // run the pins
-
+  setPins();
   delay(delayTime);
 }
 
+/**
+ * @brief Adjust pin states and shift the given array for a column.
+ */
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::customCol(int array[], int Col, int shift, int delayTime)
 {
-  adjustShift(shift, array, 0); // shifting function
-
-  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
-  {
+  adjustShift(shift, array, 0);
+  for (size_t i = 0; i < RowSize; i++)
     pinReq[i] = (OutputArray[i]) ? 1 : 0;
-  }
 
-  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
-  {
+  for (size_t i = 0; i < ColSize; i++)
     pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
-  }
 
-  setPins(); // run the pins
-
+  setPins();
   delay(delayTime);
 }
 
+/**
+ * @brief Adjust pin states and shift the given array for a row.
+ */
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::customRow(int array[], int Row, int shift, int delayTime)
 {
   adjustShift(shift, array, 1);
-
-  for (size_t i = 0; i < RowSize; i++) // recording what arrangement of positive pins
-  {
+  for (size_t i = 0; i < RowSize; i++)
     pinReq[i] = (i == limitingGrid(1, Row)) ? 1 : 0;
-  }
 
-  for (size_t i = 0; i < ColSize; i++) // recording what arrangement of negative pins
-  {
+  for (size_t i = 0; i < ColSize; i++)
     pinReq[i + RowSize] = (OutputArray[i]) ? 0 : 1;
-  }
 
-  setPins(); // run the pins
-
+  setPins();
   delay(delayTime);
 }
 
+/**
+ * @brief Display a custom symbol on the LED matrix.
+ */
 template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::Test(int delayTime)
+void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime)
 {
-  // uses raw code
-  // Column check
-  for (size_t i = 0; i < NumPins; i++)
-  {
-    digitalWrite(Pins[i], LOW);
-  }
-  for (size_t i = 0; i < ColSize; i++)
-  {
-    digitalWrite(Pins[i], HIGH);
-    delay(delayTime);
-  }
+  int TransformedMatrix[ColSize][RowSize] = {0};
 
-  // RowSize check
-  for (size_t i = 0; i < NumPins; i++)
-  {
-    digitalWrite(Pins[i], HIGH);
-  }
+  // Apply transformations to the matrix (reflection and rotation)
   for (size_t i = 0; i < RowSize; i++)
-  {
-    digitalWrite(Pins[ColSize + i], LOW);
-    delay(delayTime);
-  }
-}
+    for (size_t j = 0; j < ColSize; j++)
+      TransformedMatrix[ColSize - 1 - j][i] = UserMatrix[i][ColSize - 1 - j];
 
-template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::Symbol( int UserMatrix[RowSize][ColSize], unsigned long showTime)
-{
   unsigned long before = millis();
   while (millis() - before < showTime)
   {
-    for (size_t i = 0; i < RowSize; i++) // repeating for each RowSize
+    for (size_t i = 0; i < RowSize; i++)
     {
-      memcpy(OutputArray, UserMatrix[i], ColSize * sizeof(int)); // copy the array directly
-
+      memcpy(OutputArray, TransformedMatrix[i], ColSize * sizeof(int));
       customCol(OutputArray, i);
-
-      setPins(); // run the pins
-
+      setPins();
       delay(2);
     }
   }
 }
 
-// private:
-
+// Remaining private methods...
+/**
+ * @brief Constrain a value to the valid range of columns or rows.
+ *
+ * @param axis 0 for columns, 1 for rows.
+ * @param value The value to constrain.
+ * @return The constrained value as a valid size_t index.
+ */
 template <size_t ColSize, size_t RowSize>
-size_t LEDMatrix<ColSize, RowSize>::limitingGrid(int value, bool axis)
+size_t LEDMatrix<ColSize, RowSize>::limitingGrid(bool axis, int value)
 {
+  // Determine the maximum range based on axis (ColSize or RowSize)
   int check = (!axis) ? ColSize : RowSize;
-  return (size_t)constrain(value, 0, check - 1); // use Arduino's built-in constrain() function
+
+  // Constrain the value to be within 0 and the maximum index
+  return (size_t)constrain(value, 0, check - 1);
 }
 
+/**
+ * @brief Adjust and shift an array based on the provided shift value.
+ *
+ * @param shift Number of positions to shift. Positive for left/up, negative for right/down.
+ * @param array Input array to be shifted.
+ * @param axis 0 for columns, 1 for rows.
+ */
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::adjustShift(int shift, int array[], bool axis)
 {
+  // Determine the maximum length based on axis (ColSize or RowSize)
   int check = (!axis) ? ColSize : RowSize;
-  shift = constrain(shift, -check, check); // Prevent out-of-bound shifts
-  if (shift > 0)                           // shift upwards/left
-  {
-    for (int i = 0; i < shift; i++) // place 0 at the front
-    {
-      OutputArray[i] = 0;
-    }
-    for (int i = 0; i < (check - shift); i++) // for the rest of the spaces, copy back given array
-    {
-      OutputArray[i + shift] = array[i];
-    }
-  }
-  else if (shift < 0) // shift downwards/right
-  {
-    for (int i = 0; i < (check + shift); i++) // skip 'shift' amounts of the given array, then copy the rest
-    {
-      OutputArray[i] = array[i - shift]; // copy valid elements
-    }
 
-    for (int i = (check + shift); i < check; i++) // fill zeros in remaining space
-    {
-      OutputArray[i] = 0; // no out-of-bounds issue here
-    }
-  }
-  else if (shift == 0)
+  // Constrain the shift value to prevent out-of-bound shifts
+  shift = constrain(shift, -check, check);
+
+  if (shift > 0) // Shift upwards/leftwards
   {
-    memcpy(OutputArray, array, check * sizeof(int)); // copy the array directly
+    for (int i = 0; i < shift; i++) // Fill the first 'shift' elements with 0
+      OutputArray[i] = 0;
+
+    for (int i = 0; i < (check - shift); i++) // Copy the rest of the array
+      OutputArray[i + shift] = array[i];
+  }
+  else if (shift < 0) // Shift downwards/rightwards
+  {
+    for (int i = 0; i < (check + shift); i++) // Skip initial 'shift' elements
+      OutputArray[i] = array[i - shift];
+
+    for (int i = (check + shift); i < check; i++) // Fill the remaining elements with 0
+      OutputArray[i] = 0;
+  }
+  else // No shift
+  {
+    memcpy(OutputArray, array, check * sizeof(int)); // Copy the input array directly
   }
 }
 
+/**
+ * @brief Update the pin states based on the current pin request.
+ */
 template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::setPins()
 {
   for (size_t i = 0; i < NumPins; i++)
   {
-    // Only update the pin if the requested state is different from the previous state
+    // Only update the pin if the requested state differs from the previous state
     if (pinPrev[i] != pinReq[i])
     {
       pinPrev[i] = pinReq[i];                        // Update the previous state
-      digitalWrite(Pins[i], pinReq[i] ? HIGH : LOW); // Perform the write in the same loop
+      digitalWrite(Pins[i], pinReq[i] ? HIGH : LOW); // Write the new state to the pin
     }
   }
 }
