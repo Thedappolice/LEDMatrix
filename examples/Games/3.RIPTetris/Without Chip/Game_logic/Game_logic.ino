@@ -16,12 +16,20 @@
 #include <LEDMatrix.h>
 
 // Pin configurations for the top LED matrix
-int posPintop[] = {37, 13, 16, 40, 23, 17, 22, 19};
-int negPintop[] = {41, 21, 20, 38, 18, 39, 14, 15};
+int posPintop[] = {33, 38, 41, 36, 19, 13, 18, 15};
+int negPintop[] = {37, 17, 16, 34, 14, 25, 39, 40};
 
 // Pin configurations for the bottom LED matrix
 int posPinbot[] = {9, 4, 29, 6, 10, 28, 11, 26};
 int negPinbot[] = {5, 12, 25, 8, 27, 7, 3, 2};
+
+// // Pin configurations for the top LED matrix
+// int posPintop[] = {19, 18, 17, 16, 15, 14, 13, 41};
+// int negPintop[] = {40, 39, 38, 37, 36, 35, 34, 33};
+
+// // Pin configurations for the bottom LED matrix
+// int posPinbot[] = {2, 3, 4, 5, 6, 7, 8, 9};
+// int negPinbot[] = {10, 11, 12, 24, 25, 26, 27, 28};
 
 // Create instances for LED matrices
 LEDMatrix<GRID_WIDTH, GRID_WIDTH> LMtop(posPintop, negPintop);
@@ -145,8 +153,7 @@ void ShowSymbol(LEDMatrix<8, 8> &LM, char input, unsigned long duration = 0)
         symbolIndex = 3;
         break;
     default:
-        Serial.println("Invalid symbol input!");
-        return; // Exit if the input is invalid
+        break;
     }
 
     // Display the symbol on the LED matrix
@@ -426,8 +433,6 @@ void resetGame()
     currentShape.active = false;
 
     sendScore(score); // Reset the score display
-    Serial.println("Game Reset!");
-}
 
 /**
  * Sends the score to another board or device.
@@ -435,8 +440,8 @@ void resetGame()
  */
 void sendScore(int score)
 {
-    Serial8.write(lowByte(score));  // Send the lower byte
-    Serial8.write(highByte(score)); // Send the higher byte
+    Serial7.write(lowByte(score));  // Send the lower byte
+    Serial7.write(highByte(score)); // Send the higher byte
 }
 
 /// --- Arduino Setup and Main Loop ---
@@ -446,8 +451,7 @@ void sendScore(int score)
  */
 void setup()
 {
-    Serial.begin(9600);  // Initialize Serial communication
-    Serial8.begin(9600); // Initialize Serial8 for score transmission
+    Serial7.begin(9600); // Initialize Serial7 for score transmission
 
     // Initialize control pins as input
     for (int pin : {ROTATE_PIN, LEFT_PIN, RIGHT_PIN, DOWN_PIN, RESET_PIN})
