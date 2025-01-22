@@ -1,11 +1,9 @@
 #include <math.h> // Math library for functions like pow()
 
 // Pin Definitions for Controls
-#define ROTATE_PIN 31
-#define LEFT_PIN 32
-#define RIGHT_PIN 33
-#define DOWN_PIN 30
-#define RESET_PIN 34
+#define ROTATE_PIN 32
+#define LEFT_OR_RIGHT_PIN 22
+#define UP_OR_DOWN_PIN 23
 
 // Grid Constants
 #define GRID_WIDTH 8                      // Number of columns in the grid
@@ -440,8 +438,8 @@ void resetGame()
  */
 void sendScore(int score)
 {
-    Serial7.write(lowByte(score));  // Send the lower byte
-    Serial7.write(highByte(score)); // Send the higher byte
+    Serial5.write(lowByte(score));  // Send the lower byte
+    Serial5.write(highByte(score)); // Send the higher byte
 }
 
 /// --- Arduino Setup and Main Loop ---
@@ -451,7 +449,7 @@ void sendScore(int score)
  */
 void setup()
 {
-    Serial7.begin(9600); // Initialize Serial7 for score transmission
+    Serial5.begin(9600); // Initialize Serial7 for score transmission
 
     // Initialize control pins as input
     for (int pin : {ROTATE_PIN, LEFT_PIN, RIGHT_PIN, DOWN_PIN, RESET_PIN})
