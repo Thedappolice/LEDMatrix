@@ -433,6 +433,7 @@ void resetGame()
     currentShape.active = false;
 
     sendScore(score); // Reset the score display
+}
 
 /**
  * Sends the score to another board or device.
