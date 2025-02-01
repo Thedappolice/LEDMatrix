@@ -1,8 +1,8 @@
 #include <LEDMatrix.h>
 
 // (Row/Column) pins must be put in ascending order, follow your datasheet.
-int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
-int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
+int posPin[] = {33, 38, 41, 36, 19, 13, 18, 15};
+int negPin[] = {37, 17, 16, 34, 14, 35, 39, 40};
 
 //"Z" named 2d matrix
 int Z[8][8] = {
@@ -86,16 +86,15 @@ LEDMatrix<8, 8> LM(posPin, negPin); // Initialization
 
 void setup()
 {
-  LM.Symbol(Z, 500); // Object_name.Symbol(name_of_character, duration ↓);
-  LM.Symbol(E, 500); // (in millisseconds, optional, defaulted to 1000)
-  LM.Symbol(N, 500);
-  LM.Symbol(I, 500);
-  LM.Symbol(U, 500);
-  LM.Symbol(S, 500);
-  LM.Symbol(End);
+    LM.Symbol(Z, 500); // Object_name.Symbol(name_of_character, duration, clean);
+    LM.Symbol(E, 500); // (in millisseconds, optional, defaulted to 1000)
+    LM.Symbol(N, 500); // (clean is optional, to remove risidue display)
+    LM.Symbol(I, 500);
+    LM.Symbol(U, 500);
+    LM.Symbol(S, 500);
+    LM.Symbol(End, 500, 1);
 }
 
 void loop()
 {
-  
 }

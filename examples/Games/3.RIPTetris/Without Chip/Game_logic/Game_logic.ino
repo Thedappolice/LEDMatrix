@@ -2,8 +2,8 @@
 
 // Pin Definitions for Controls
 #define ROTATE_PIN 32
-#define LEFT_OR_RIGHT_PIN 22
-#define UP_OR_DOWN_PIN 23
+#define LEFT_OR_RIGHT_PIN 23
+#define UP_OR_DOWN_PIN 22
 
 // Grid Constants
 #define GRID_WIDTH 8                      // Number of columns in the grid
@@ -15,19 +15,11 @@
 
 // Pin configurations for the top LED matrix
 int posPintop[] = {33, 38, 41, 36, 19, 13, 18, 15};
-int negPintop[] = {37, 17, 16, 34, 14, 25, 39, 40};
+int negPintop[] = {37, 17, 16, 34, 14, 35, 39, 40};
 
 // Pin configurations for the bottom LED matrix
-int posPinbot[] = {9, 4, 29, 6, 10, 28, 11, 26};
-int negPinbot[] = {5, 12, 25, 8, 27, 7, 3, 2};
-
-// // Pin configurations for the top LED matrix
-// int posPintop[] = {19, 18, 17, 16, 15, 14, 13, 41};
-// int negPintop[] = {40, 39, 38, 37, 36, 35, 34, 33};
-
-// // Pin configurations for the bottom LED matrix
-// int posPinbot[] = {2, 3, 4, 5, 6, 7, 8, 9};
-// int negPinbot[] = {10, 11, 12, 24, 25, 26, 27, 28};
+int posPinbot[] = {9, 4, 28, 6, 10, 27, 11, 25};
+int negPinbot[] = {5, 12, 24, 8, 26, 7, 3, 2};
 
 // Create instances for LED matrices
 LEDMatrix<GRID_WIDTH, GRID_WIDTH> LMtop(posPintop, negPintop);
@@ -214,8 +206,7 @@ void alterShape(int mode)
         {
             for (int i = 0; i < 4; i++)
             {
-                if (currentShape.coordinates[i][0] == CHECKING_HEIGHT - 1 ||
-                    grid.stable[currentShape.coordinates[i][0] + 1][currentShape.coordinates[i][1]])
+                if (currentShape.coordinates[i][0] == CHECKING_HEIGHT - 1 || grid.stable[currentShape.coordinates[i][0] + 1][currentShape.coordinates[i][1]])
                 {
                     // Lock the shape into the stable grid
                     for (int j = 0; j < 4; j++)
@@ -355,22 +346,21 @@ void checkInput()
     // Update the previous state
     previousRotateState = currentRotateState;
 
-    // Other button inputs (no changes needed)
-    if (digitalRead(LEFT_PIN) == HIGH)
+    // // Other button inputs (no changes needed)
+    int Xvalue = analogRead(LEFT_OR_RIGHT_PIN);
+    int Yvalue = analogRead(UP_OR_DOWN_PIN);
+
+    if (Xvalue > 900)
     {
-        alterShape(-1); // Move Left
+        alterShape(1); // Move Left
     }
-    if (digitalRead(RIGHT_PIN) == HIGH)
+    if (Xvalue < 100)
     {
-        alterShape(1); // Move Right
+        alterShape(-1); // Move Right
     }
-    if (digitalRead(DOWN_PIN) == HIGH)
+    if (Yvalue < 100)
     {
         alterShape(0); // Move Down
-    }
-    if (digitalRead(RESET_PIN) == HIGH)
-    {
-        resetGame(); // Reset the game
     }
 }
 
@@ -379,13 +369,15 @@ void checkInput()
  */
 void gatherAndDisplay()
 {
-    // Copy the stable grid into the display grid
-    memcpy(grid.display, grid.stable, sizeof(grid.stable));
+    if (!end)
+    { // Copy the stable grid into the display grid
+        memcpy(grid.display, grid.stable, sizeof(grid.stable));
 
-    // Add the active shape to the display grid
-    for (int i = 0; i < 4; i++)
-    {
-        grid.display[currentShape.coordinates[i][0]][currentShape.coordinates[i][1]] = 1;
+        // Add the active shape to the display grid
+        for (int i = 0; i < 4; i++)
+        {
+            grid.display[currentShape.coordinates[i][0]][currentShape.coordinates[i][1]] = 1;
+        }
     }
 
     // Update the top and bottom matrix displays
@@ -405,7 +397,7 @@ void gatherAndDisplay()
  */
 void showEndAnimation()
 {
-    for (int i = GRID_HEIGHT - 1; i >= 0; i--)
+    for (int i = CHECKING_HEIGHT; i > 0; i--)
     {
         for (int j = 0; j < GRID_WIDTH; j++)
         {
@@ -414,23 +406,6 @@ void showEndAnimation()
         gatherAndDisplay();
         delay(50); // Small delay for animation effect
     }
-}
-
-/**
- * Resets the game state.
- */
-void resetGame()
-{
-    grid.clearStable();
-    grid.clearDisplay();
-    memset(grid.top, 0, sizeof(grid.top));
-    memset(grid.bottom, 0, sizeof(grid.bottom));
-    score = 0;
-    end = false;
-    ended = false;
-    currentShape.active = false;
-
-    sendScore(score); // Reset the score display
 }
 
 /**
@@ -453,12 +428,9 @@ void setup()
     Serial5.begin(9600); // Initialize Serial7 for score transmission
 
     // Initialize control pins as input
-    for (int pin : {ROTATE_PIN, LEFT_PIN, RIGHT_PIN, DOWN_PIN, RESET_PIN})
-    {
-        pinMode(pin, INPUT);
-    }
+    pinMode(ROTATE_PIN, INPUT);
 
-    randomSeed(analogRead(24)); // Seed the random number generator
+    randomSeed(analogRead(21)); // Seed the random number generator
     sendScore(10000);           // Signal game start to another board
 }
 

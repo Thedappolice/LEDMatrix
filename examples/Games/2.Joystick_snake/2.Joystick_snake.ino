@@ -1,4 +1,4 @@
-//this program uses Arduino Nano
+// this program uses Arduino Nano
 
 #include <LEDMatrix.h>
 
@@ -119,17 +119,17 @@ void checkdInput()
         Command = 'l'; // Left
         oppDir = 'r';
     }
-    else if (analogRead(A7) < 256)
+    if (analogRead(A7) < 256)
     {
         Command = 'r'; // Right
         oppDir = 'l';
     }
-    else if (analogRead(A6) > 768)
+    if (analogRead(A6) > 768)
     {
         Command = 'd'; // Down
         oppDir = 'u';
     }
-    else if (analogRead(A6) < 256)
+    if (analogRead(A6) < 256)
     {
         Command = 'u'; // Up
         oppDir = 'd';

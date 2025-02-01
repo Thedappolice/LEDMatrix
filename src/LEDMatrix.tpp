@@ -6,15 +6,25 @@
 template <size_t ColSize, size_t RowSize>
 LEDMatrix<ColSize, RowSize>::LEDMatrix(int posPins[], int negPins[])
 {
-  // Assign positive and negative pins
-  for (size_t i = 0; i < ColSize; i++)
+  Pins = new int[NumPins];             // record all pins in order from pos to neg
+  for (size_t i = 0; i < ColSize; i++) // record all positive pins
+  {
     Pins[i] = posPins[i];
-  for (size_t i = 0; i < RowSize; i++)
+  }
+  for (size_t i = 0; i < RowSize; i++) // record all negative pins
+  {
     Pins[ColSize + i] = negPins[i];
+  }
 
-  // Set all pins to OUTPUT mode
-  for (size_t i = 0; i < NumPins; i++)
+  for (size_t i = 0; i < NumPins; i++) // set all pins to output
+  {
     pinMode(Pins[i], OUTPUT);
+  }
+
+  OutputArray = new int[max(ColSize, RowSize)]; // output row placeholder
+
+  pinReq = new int[NumPins];  // for digitalWrite() requests
+  pinPrev = new int[NumPins]; // record the previous pin state
 }
 
 /**
@@ -24,10 +34,10 @@ template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::turnOn(int Col, int Row, int delayTime)
 {
   for (size_t i = 0; i < RowSize; i++)
-    pinReq[i] = (i == limitingGrid(0, Row)) ? 1 : 0;
+    pinReq[i] = (i == limitingGrid(Row, 1)) ? 1 : 0;
 
   for (size_t i = 0; i < ColSize; i++)
-    pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
+    pinReq[i + RowSize] = (i == limitingGrid(Col, 0)) ? 0 : 1;
 
   setPins();
   delay(delayTime);
@@ -43,7 +53,7 @@ void LEDMatrix<ColSize, RowSize>::OnCol(int Col, int delayTime)
     pinReq[i] = 1;
 
   for (size_t i = 0; i < ColSize; i++)
-    pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
+    pinReq[i + RowSize] = (i == limitingGrid(Col, 0)) ? 0 : 1;
 
   setPins();
   delay(delayTime);
@@ -56,7 +66,7 @@ template <size_t ColSize, size_t RowSize>
 void LEDMatrix<ColSize, RowSize>::OnRow(int Row, int delayTime)
 {
   for (size_t i = 0; i < RowSize; i++)
-    pinReq[i] = (i == limitingGrid(1, Row)) ? 1 : 0;
+    pinReq[i] = (i == limitingGrid(Row, 1)) ? 1 : 0;
 
   for (size_t i = 0; i < ColSize; i++)
     pinReq[i + RowSize] = 0;
@@ -76,7 +86,7 @@ void LEDMatrix<ColSize, RowSize>::customCol(int array[], int Col, int shift, int
     pinReq[i] = (OutputArray[i]) ? 1 : 0;
 
   for (size_t i = 0; i < ColSize; i++)
-    pinReq[i + RowSize] = (i == limitingGrid(0, Col)) ? 0 : 1;
+    pinReq[i + RowSize] = (i == limitingGrid(Col, 0)) ? 0 : 1;
 
   setPins();
   delay(delayTime);
@@ -90,7 +100,7 @@ void LEDMatrix<ColSize, RowSize>::customRow(int array[], int Row, int shift, int
 {
   adjustShift(shift, array, 1);
   for (size_t i = 0; i < RowSize; i++)
-    pinReq[i] = (i == limitingGrid(1, Row)) ? 1 : 0;
+    pinReq[i] = (i == limitingGrid(Row, 1)) ? 1 : 0;
 
   for (size_t i = 0; i < ColSize; i++)
     pinReq[i + RowSize] = (OutputArray[i]) ? 0 : 1;
@@ -99,11 +109,38 @@ void LEDMatrix<ColSize, RowSize>::customRow(int array[], int Row, int shift, int
   delay(delayTime);
 }
 
+template <size_t ColSize, size_t RowSize>
+void LEDMatrix<ColSize, RowSize>::Test(int delayTime)
+{
+  // uses raw code
+  // Column check
+  for (size_t i = 0; i < NumPins; i++)
+  {
+    digitalWrite(Pins[i], LOW);
+  }
+  for (size_t i = 0; i < ColSize; i++)
+  {
+    digitalWrite(Pins[i], HIGH);
+    delay(delayTime);
+  }
+
+  // RowSize check
+  for (size_t i = 0; i < NumPins; i++)
+  {
+    digitalWrite(Pins[i], HIGH);
+  }
+  for (size_t i = 0; i < RowSize; i++)
+  {
+    digitalWrite(Pins[ColSize + i], LOW);
+    delay(delayTime);
+  }
+}
+
 /**
  * @brief Display a custom symbol on the LED matrix.
  */
 template <size_t ColSize, size_t RowSize>
-void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime)
+void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsigned long showTime, bool clear)
 {
   int TransformedMatrix[ColSize][RowSize] = {0};
 
@@ -120,7 +157,14 @@ void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsig
       memcpy(OutputArray, TransformedMatrix[i], ColSize * sizeof(int));
       customCol(OutputArray, i);
       setPins();
-      delay(2);
+      delay(1);
+    }
+  }
+  if (clear)
+  {
+    for (size_t i = 0; i < NumPins; i++)
+    {
+      digitalWrite(Pins[i], LOW);
     }
   }
 }
@@ -134,7 +178,7 @@ void LEDMatrix<ColSize, RowSize>::Symbol(int UserMatrix[RowSize][ColSize], unsig
  * @return The constrained value as a valid size_t index.
  */
 template <size_t ColSize, size_t RowSize>
-size_t LEDMatrix<ColSize, RowSize>::limitingGrid(bool axis, int value)
+size_t LEDMatrix<ColSize, RowSize>::limitingGrid(int value, bool axis)
 {
   // Determine the maximum range based on axis (ColSize or RowSize)
   int check = (!axis) ? ColSize : RowSize;
