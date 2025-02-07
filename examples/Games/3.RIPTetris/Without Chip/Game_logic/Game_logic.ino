@@ -85,7 +85,7 @@ bool ended = false; // Whether the end animation has been shown
  * @param input - Character representing the symbol ('1', '2', '3', or 'E').
  * @param duration - Optional duration (in milliseconds) for displaying the symbol. Default is 0 (persistent display).
  */
-void ShowSymbol(LEDMatrix<8, 8> &LM, char input, unsigned long duration = 0)
+void Char(LEDMatrix<8, 8> &LM, char input, unsigned long duration = 0)
 {
     // Predefined symbols
     int symbols[4][8][8] = {
@@ -441,7 +441,7 @@ void loop()
 {
     if (ended)
     {
-        ShowSymbol(LMbot, 'E', 2000); // Show the 'E' symbol for 2000 ms
+        Char(LMbot, 'E', 2000); // Show the 'E' symbol for 2000 ms
     }
     else if (!end)
     {
