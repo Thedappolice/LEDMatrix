@@ -38,6 +38,9 @@ public:
     void loop();
 
 private:
+    int displayMatrix[][8];
+    LEDMatrix<8, 8> *topLM;
+    LEDMatrix<8, 8> *botLM;
 }
 
 #endif
