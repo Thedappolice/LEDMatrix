@@ -14,12 +14,12 @@
 #include <LEDMatrix.h>
 
 // Pin configurations for the top LED matrix
-int posPintop[] = {33, 38, 41, 36, 19, 13, 18, 15};
-int negPintop[] = {37, 17, 16, 34, 14, 35, 39, 40};
+int posPintop[] = {19, 18, 17, 16, 15, 14, 13, 41};
+int negPintop[] = {40, 39, 38, 37, 36, 35, 34, 33};
 
 // Pin configurations for the bottom LED matrix
-int posPinbot[] = {9, 4, 28, 6, 10, 27, 11, 25};
-int negPinbot[] = {5, 12, 24, 8, 26, 7, 3, 2};
+int posPinbot[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int negPinbot[] = {10, 11, 12, 24, 25, 26, 27, 28};
 
 // Create instances for LED matrices
 LEDMatrix<GRID_WIDTH, GRID_WIDTH> LMtop(posPintop, negPintop);
