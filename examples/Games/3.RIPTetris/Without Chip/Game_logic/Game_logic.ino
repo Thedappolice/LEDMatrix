@@ -73,6 +73,7 @@ unsigned long interval = 500;      // Time between automatic block drops (ms)
 bool previousRotateState = LOW;
 
 // Game State Variables
+bool initialized = false;
 int score = 0;      // Current score
 bool end = false;   // Whether the game is over
 bool ended = false; // Whether the end animation has been shown
@@ -162,6 +163,7 @@ void alterShape(int mode)
 {
     int newCoordinates[4][2]; // Temporary coordinates for validation
 
+    // Calculate the new positions
     for (int i = 0; i < 4; i++)
     {
         newCoordinates[i][0] = currentShape.coordinates[i][0];
@@ -175,21 +177,14 @@ void alterShape(int mode)
             newCoordinates[i][0] += 1;
         else if (mode == 3) // Rotate
         {
-            int pivotX = currentShape.coordinates[0][1]; // Use first block as pivot
-            int pivotY = currentShape.coordinates[0][0];
-
-            for (int j = 0; j < 4; j++)
-            {
-                int relX = currentShape.coordinates[j][1] - pivotX;
-                int relY = currentShape.coordinates[j][0] - pivotY;
-
-                newCoordinates[j][0] = pivotY - relX; // Rotate 90° clockwise
-                newCoordinates[j][1] = pivotX + relY;
-            }
+            int y = currentShape.coordinates[0][0];
+            int x = currentShape.coordinates[0][1];
+            newCoordinates[i][0] = y - (currentShape.coordinates[i][1] - x);
+            newCoordinates[i][1] = x + (currentShape.coordinates[i][0] - y);
         }
     }
 
-    // Validate new position
+    // Validate the new positions
     bool validMove = true;
     for (int i = 0; i < 4; i++)
     {
@@ -203,9 +198,27 @@ void alterShape(int mode)
         }
     }
 
+    // Apply the new positions if valid
     if (validMove)
     {
         memcpy(currentShape.coordinates, newCoordinates, sizeof(newCoordinates));
+
+        if (mode == 0) // Handle locking when moving down
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (currentShape.coordinates[i][0] == CHECKING_HEIGHT - 1 || grid.stable[currentShape.coordinates[i][0] + 1][currentShape.coordinates[i][1]])
+                {
+                    // Lock the shape into the stable grid
+                    for (int j = 0; j < 4; j++)
+                        grid.stable[currentShape.coordinates[j][0]][currentShape.coordinates[j][1]] = 1;
+
+                    currentShape.active = false; // Deactivate the current shape
+                    scanAndClearGrid();          // Check for and clear full rows
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -266,6 +279,19 @@ void shiftRowsDown(int startRow)
  */
 void scanAndClearGrid()
 {
+    // Check for overflow in the illegal zone (top 3 rows)
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < GRID_WIDTH; j++)
+        {
+            if (grid.stable[i][j] == 1)
+            {
+                end = true; // Game over
+                return;
+            }
+        }
+    }
+
     int clearedRows = 0;
 
     // Check and clear full rows from bottom to top
@@ -283,32 +309,23 @@ void scanAndClearGrid()
 
         if (isFull)
         {
-            clearRow(i);
+            clearRow(i); // Clear the full row
             clearedRows++;
         }
         else if (clearedRows > 0)
         {
-            shiftRowsDown(i + clearedRows);
+            shiftRowsDown(i + clearedRows); // Shift rows down if rows were cleared
         }
     }
 
-    // Update score based on the number of cleared rows
-    const int scoreTable[] = {0, 40, 100, 300, 1200}; // Standard Tetris scoring
+    // Update the score based on the number of cleared rows
     if (clearedRows > 0)
     {
-        score += scoreTable[clearedRows];
+        score += pow(clearedRows, clearedRows); // Exponential scoring based on rows cleared
         if (score > 9999)
-            score = 9999; // Cap score at 9999
-
-        // Increase game speed every 10 lines cleared
-        static int totalCleared = 0;
-        totalCleared += clearedRows;
-        if (totalCleared >= 10)
         {
-            totalCleared = 0;
-            interval = max(100, interval - 50); // Decrease interval (increase speed)
+            score = 9999; // Cap the score at 9999
         }
-
         sendScore(score);
     }
 }
@@ -415,7 +432,8 @@ void setup()
     pinMode(ROTATE_PIN, INPUT);
 
     randomSeed(analogRead(21)); // Seed the random number generator
-    sendScore(10000);           // Signal game start to another board
+    delay(3000);
+    sendScore(10000); // Signal game start to another board
 }
 
 /**
@@ -423,33 +441,27 @@ void setup()
  */
 void loop()
 {
-    static unsigned long lastDropTime = 0;
-    static unsigned long lastMoveTime = 0;
-    unsigned long currentTime = millis();
-
-    if (!end)
+    if (ended)
     {
-        checkInput();
+        Char(LMbot, 'E', 2000); // Show the 'E' symbol for 2000 ms
+    }
+    else if (!end)
+    {
+        genShape();   // Generate a new shape if needed
+        checkInput(); // Process player inputs
 
-        // Handle automatic downward movement every "interval" milliseconds
-        if (currentTime - lastDropTime >= interval)
+        // Handle automatic downward movement
+        if (millis() - prev >= interval)
         {
-            lastDropTime = currentTime;
-            alterShape(0); // Move shape down automatically
+            prev = millis();
+            alterShape(0); // Move the shape down automatically
         }
 
-        // Add input delay (100ms) for smoother movement
-        if (currentTime - lastMoveTime >= inputInterval)
-        {
-            lastMoveTime = currentTime;
-            checkInput(); // Read inputs with a small delay
-        }
-
-        gatherAndDisplay();
+        gatherAndDisplay(); // Update the display
     }
     else
     {
-        showEndAnimation();
-        ended = true;
+        showEndAnimation(); // Display the end animation
+        ended = true;       // Mark the end animation as shown
     }
 }
