@@ -2,9 +2,8 @@
 #define LEDMATRIXCHIP_H
 
 #include <Arduino.h>
-#include "LEDMatrix.h" // Assuming you have the LEDMatrix base class
 
-class LEDMatrixChip : public LEDMatrix<8, 8> // Inherit from LEDMatrix<8, 8>
+class LEDMatrixChip 
 {
 public:
     // Constructor
@@ -13,26 +12,26 @@ public:
     //clean up display
     void clear();
 
-    // Turn on x-Col's, y-Row's LED
-    void turnOn(int Col, int Row);
+    // // Turn on x-Col's, y-Row's LED
+    // void turnOn(int Col, int Row);
 
-    // Turn on entire x-Col
-    void OnCol(int Col);
+    // // Turn on entire x-Col
+    // void OnCol(int Col);
 
-    // Turn on entire y-Row
-    void OnRow(int Row);
+    // // Turn on entire y-Row
+    // void OnRow(int Row);
 
-    // Turn on x-Col by given array, shiftable by +/- n
-    void customCol(int array[], int Col, int shift = 0);
+    // // Turn on x-Col by given array, shiftable by +/- n
+    // void customCol(int array[], int Col, int shift = 0);
 
-    // Turn on y-Row by given array, shiftable by +/- n
-    void customRow(int array[], int Row, int shift = 0);
+    // // Turn on y-Row by given array, shiftable by +/- n
+    // void customRow(int array[], int Row, int shift = 0);
 
     // Check all possible LED
-    void Test(int delayTime = 100);
+    void Test();
 
-    // Display custom symbol
-    void Symbol(int UserMatrix[8][8]);
+    // // Display custom symbol
+    // void Symbol(int UserMatrix[8][8]);
 
 private:
     // Pin variables for chip communication
