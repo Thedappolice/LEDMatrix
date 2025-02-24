@@ -63,11 +63,13 @@ struct GridMemory
 // Create an instance of GridMemory
 GridMemory grid;
 
-// Timing Variables
-unsigned long lastInputTime = 0;   // Last time input was processed
-unsigned long inputInterval = 100; // Interval between inputs (ms)
+// Timing for game
 unsigned long prev = 0;            // Previous time for game interval
 unsigned long interval = 500;      // Time between automatic block drops (ms)
+
+//timing for inputs
+unsigned long inputprev = 0;       // Previous time for input
+unsigned long inputinterval = 500; // Time between accpeted inputs (ms)
 
 // Track the previous state of the rotate button
 bool previousRotateState = LOW;
@@ -447,21 +449,27 @@ void loop()
     }
     else if (!end)
     {
-        genShape();   // Generate a new shape if needed
-        checkInput(); // Process player inputs
+        genShape(); // Generate a new shape if needed
 
         // Handle automatic downward movement
         if (millis() - prev >= interval)
         {
             prev = millis();
-            alterShape(0); // Move the shape down automatically
+            alterShape(0);
         }
 
-        gatherAndDisplay(); // Update the display
+        // Handle input timing here instead of inside checkInput()
+        if (millis() - inputprev >= inputinterval)
+        {
+            inputprev = millis();
+            checkInput(); // Now checkInput() just reads and acts on inputs
+        }
+
+        gatherAndDisplay();
     }
     else
     {
-        showEndAnimation(); // Display the end animation
-        ended = true;       // Mark the end animation as shown
+        showEndAnimation();
+        ended = true;
     }
 }
