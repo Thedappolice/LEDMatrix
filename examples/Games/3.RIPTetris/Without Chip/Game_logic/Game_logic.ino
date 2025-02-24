@@ -64,12 +64,12 @@ struct GridMemory
 GridMemory grid;
 
 // Timing for game
-unsigned long prev = 0;            // Previous time for game interval
-unsigned long interval = 500;      // Time between automatic block drops (ms)
+unsigned long prev = 0;       // Previous time for game interval
+unsigned long interval = 500; // Time between automatic block drops (ms)
 
-//timing for inputs
+// timing for inputs
 unsigned long inputprev = 0;       // Previous time for input
-unsigned long inputinterval = 500; // Time between accpeted inputs (ms)
+unsigned long inputinterval = 100; // Time between accpeted inputs (ms)
 
 // Track the previous state of the rotate button
 bool previousRotateState = LOW;
@@ -296,7 +296,7 @@ void scanAndClearGrid()
 
     int clearedRows = 0;
 
-    // Check and clear full rows from bottom to top
+    // Scan from bottom to top to find and clear full rows
     for (int i = CHECKING_HEIGHT - 1; i >= 3; i--)
     {
         bool isFull = true;
@@ -311,23 +311,36 @@ void scanAndClearGrid()
 
         if (isFull)
         {
-            clearRow(i); // Clear the full row
             clearedRows++;
-        }
-        else if (clearedRows > 0)
-        {
-            shiftRowsDown(i + clearedRows); // Shift rows down if rows were cleared
+            clearRow(i); // Clear this row
+
+            // Shift all rows above down by one
+            for (int k = i; k > 0; k--)
+            {
+                memcpy(grid.stable[k], grid.stable[k - 1], sizeof(grid.stable[k]));
+            }
+
+            // Reset the top row to empty
+            memset(grid.stable[0], 0, sizeof(grid.stable[0]));
+
+            // Since we shifted everything down, we must re-check this row
+            i++;
         }
     }
 
     // Update the score based on the number of cleared rows
     if (clearedRows > 0)
     {
-        score += pow(clearedRows, clearedRows); // Exponential scoring based on rows cleared
+        // Tetris standard scoring system
+        int points[] = {0, 40, 100, 300, 1200};
+        score += points[clearedRows];
+
+        // Cap the score at 9999
         if (score > 9999)
         {
-            score = 9999; // Cap the score at 9999
+            score = 9999;
         }
+
         sendScore(score);
     }
 }
@@ -355,13 +368,13 @@ void checkInput()
 
     if (Xvalue > 900)
     {
-        alterShape(1); // Move Left
+        alterShape(-1); // Move Left
     }
     if (Xvalue < 100)
     {
-        alterShape(-1); // Move Right
+        alterShape(1); // Move Right
     }
-    if (Yvalue < 100)
+    if (Yvalue > 900)
     {
         alterShape(0); // Move Down
     }

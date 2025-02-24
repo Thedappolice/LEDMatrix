@@ -8,7 +8,7 @@
 int segmentPins[] = {2, 3, 4, 5, 6, 7, 8, 9};
 
 // digit pins from left to right
-int digitPins[] = {10, 11, 12, 13};
+int digitPins[] = {13, 12, 11, 10};
 
 Dis7Seg dis('-', segmentPins, 4, digitPins);
 
@@ -84,29 +84,26 @@ void recieveSerial()
 
 void updateScoreDisplay()
 {
+    // Reset scoreNum before processing
+    for (int i = 0; i < 4; i++)
+        scoreNum[i] = -1; // Assume all are blank initially
+
     // Handle the special case where score is 0
     if (score == 0)
     {
         scoreNum[3] = 0; // Display '0' in the units place
-        for (int i = 0; i < 3; i++)
-            scoreNum[i] = -1; // Blank all other digits
     }
     else
     {
-        // Temporary variable to hold the score
         int tempScore = score;
-        bool leadingZero = true;
+        int index = 3; // Start from the rightmost digit
 
-        // Extract digits and handle leading zeros
-        for (int i = 3; i >= 0; i--)
+        // Extract digits, ensuring leading zeros are blank
+        while (tempScore > 0)
         {
-            scoreNum[i] = tempScore % 10;
+            scoreNum[index] = tempScore % 10; // Get last digit
             tempScore /= 10;
-
-            if (scoreNum[i] == 0 && leadingZero)
-                scoreNum[i] = -1; // Blank leading zero
-            else
-                leadingZero = false;
+            index--; // Move left
         }
     }
 
