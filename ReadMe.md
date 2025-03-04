@@ -10,6 +10,4 @@ NOTE THE PINOUTS OF POSITIVE AND NEGATIVE PINS ARE TO BE LABELLED IN ACCENDING O
 This is my 1st library, based around a 8 by 8 LED Matrix.
 If an expert views this and can provide improvement or any problems are found, please do not hesitate to cantact me via my email thedappolice69@gmail.com
 
-this library also serves as a tribute to Zenius Tech's teachings, find them on their website : https://www.zeniustech.com/
-
 Now the library is also compatible with the MAX7219 Chip commonly used with a typical 8x8 LED Matrix
