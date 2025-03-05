@@ -1,55 +1,73 @@
 #include <LEDMatrix.h>
 
-// (Row/Column) for this example pins can be put in preffered order, follow your datasheet.
-int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};
-int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3};
+// Define row and column pins (Order matters, follow your datasheet)
+int posPin[] = {2, 3, 4, 5, 6, 7, 8, 9};         // Positive (Column) pins
+int negPin[] = {10, 11, 12, 13, A0, A1, A2, A3}; // Negative (Row) pins
 
-// Custom Row/Column array Initialization
-int Example_Col[] = {0, 0, 0, 1, 1, 1, 0, 0};
-int Example_Row[] = {1, 1, 1, 0, 0, 0, 1, 1};
+// Initialization: LEDMatrix<ColSize, RowSize> ObjectName(posPinArray, negPinArray)
+LEDMatrix<8, 8> LM(posPin, negPin);
 
-LEDMatrix<8, 8> LM(posPin, negPin); // Initialization
 /*
-  Class name <size_of_pos_pins, size_of_neg_pins>, Object_name(
+  Class name <num_of_columns, num_of_rows>, Object_name(
   positive_pin_array[],
   negative_pin_array[]
   )
 */
 
+// Custom row/column patterns (each value represents an LED state: 1 = ON, 0 = OFF)
+int Example_Col[] = {0, 0, 0, 1, 1, 1, 0, 0}; // Example column pattern
+int Example_Row[] = {1, 1, 1, 0, 0, 0, 1, 1}; // Example row pattern
+
 void setup()
 {
-  LM.Test(); // test the LED Matrix
-             // if rows and columns light up in order then pin array is listed in order
+  LM.Test();
+  /*
+    Runs a test sequence to verify wiring.
+    If rows and columns light up in order, pin arrays are correctly listed.
+  */
 }
 
 void loop()
 {
-  LM.turnOn(2, 4); // turn on x-th Column's, y-th Row's Led of Matrix
-  // LM.turnOn(2, 4, 1000); // turn on x-th Column's, y-th Row's Led of Matrix, for n milliseconds
-
-  LM.OnCol(3); // turn on entire n-th Column
-  // LM.OnCol(3, 1000); // turn on entire n-th Column, for n milliseconds
-
-  LM.OnRow(6); // turn on entire n-th Row
-  // LM.OnRow(6); // turn on entire n-th Row, for n milliseconds
-
-  LM.customCol(Example_Col, 1); // turn on 1st column with given array order
+  LM.turnOn(2, 4);
   /*
-    Object.customCol(
-    array_name,
-    n-th_column,
-    shift_left/right(optional)
-    display_duration(optional, defaulted to 1000, in milliseconds unit)
-  )*/
+    Turns on a single LED at a specific position.
+    Parameters:
+    Column index (0-7),
+    Row index (0-7)
+  */
 
-  LM.customRow(Example_Row, 2); // turn on 2nd row with given array order
-                                /*
-                                   Object.customRow(
-                                   array_name,
-                                   n-th_column,
-                                   shift_left/right(optional)
-                                   display_duration(optional, defaulted to 1000, in milliseconds unit)
-                                 )*/
+  LM.OnCol(3);
+  /*
+    Turns on all LEDs in a specific column.
+    Parameters:
+    Column index (0-7)
+  */
 
-  // LM.Symbol(2D array), read the Custom_char example
+  LM.OnRow(6);
+  /*
+    Turns on all LEDs in a specific row.
+    Parameters:
+    Row index (0-7)
+  */
+
+  LM.customCol(Example_Col, 1);
+  /*
+    Displays a custom column pattern.
+    Parameters:
+    Array of LED states (1 = ON, 0 = OFF),
+    Column index (0-7),
+    Shift (default 0)
+  */
+
+  LM.customRow(Example_Row, 2);
+  /*
+    Displays a custom row pattern.
+    Parameters:
+    Array of LED states (1 = ON, 0 = OFF),
+    Row index (0-7),
+    Shift (default 0)
+  */
+
+  // LM.Symbol(2D array); // Displays a full custom 8x8 symbol (not used in this example)
 }
