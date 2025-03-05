@@ -4,6 +4,14 @@
 int posPin[] = {33, 38, 41, 36, 19, 13, 18, 15};
 int negPin[] = {37, 17, 16, 34, 14, 35, 39, 40};
 
+LEDMatrix<8, 8> LM(posPin, negPin); // Initialization
+/*
+  Class name <size_of_pos_pins, size_of_neg_pins>, Object_name(
+  positive_pin_array[],
+  negative_pin_array[]
+  )
+*/
+
 //"Z" named 2d matrix
 int Z[8][8] = {
     {0, 1, 1, 1, 1, 1, 1, 0},
@@ -76,13 +84,6 @@ int End[8][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0},
 };
 
-LEDMatrix<8, 8> LM(posPin, negPin); // Initialization
-/*
-  Class name <size_of_pos_pins, size_of_neg_pins>, Object_name(
-  positive_pin_array[],
-  negative_pin_array[]
-  )
-*/
 
 void setup()
 {
