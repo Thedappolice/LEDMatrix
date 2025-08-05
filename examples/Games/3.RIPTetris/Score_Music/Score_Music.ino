@@ -13,7 +13,7 @@ int digitPins[] = {13, 12, 11, 10};
 Dis7Seg dis('-', segmentPins, 4, digitPins);
 
 // Initialize array with -1, and the ones place with 0
-int scoreNum[4] = {-1, -1, -1, -1};
+int scoreNum[4] = {-1, -1, -1, 0};
 int score = 0;
 
 bool initiate = false;
@@ -28,7 +28,6 @@ const int songNotes[][2] = {
 
 void playSong()
 {
-
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= noteDuration)
@@ -58,26 +57,22 @@ void playSong()
     }
 }
 
-void recieveSerial()
+void receiveSerial()
 {
-    if (Serial.available() >= 2) // Ensure we have at least 2 bytes to read
+    while (Serial.available() >= 2)
     {
-        // Read the low and high bytes
         byte low = Serial.read();
         byte high = Serial.read();
 
-        // Reconstruct the full integer (16-bit value)
-        int input = word(high, low); // Combine the high and low byte to get the original score
+        int input = word(high, low);
 
-        switch (input)
+        if (input == 10000)
         {
-        case 10000:
             initiate = true;
-            break;
-
-        default:
+        }
+        else if (input >= 0 && input <= 9999)
+        {
             score = input;
-            break;
         }
     }
 }
@@ -118,7 +113,7 @@ void setup()
 
 void loop()
 {
-    recieveSerial();
+    receiveSerial();
     if (!initiate)
     {
         dis.scan(scoreNum, nullptr, true); // Refresh the display with updated score
