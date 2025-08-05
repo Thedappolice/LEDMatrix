@@ -1,10 +1,8 @@
 #include "RIPTetris.h"
 
 // Constructor
-RIPTetris::RIPTetris(LEDMatrix<8, 8> &topDisplay, LEDMatrix<8, 8> &botDisplay)
+RIPTetris::RIPTetris()
 {
-    topLM = &topDisplay;
-    botLM = &botDisplay;
 }
 
 // Destructor
@@ -13,7 +11,7 @@ RIPTetris::~RIPTetris()
 }
 
 // Game Loop
-void RIPTetris::gameLoop()
+void RIPTetris::gameLoop(direction input)
 {
     static unsigned long lastDropTime = 0;
     static unsigned long lastMoveTime = 0;
@@ -21,27 +19,27 @@ void RIPTetris::gameLoop()
 
     if (!end)
     {
-        checkInput();
-
-        if (currentTime - lastDropTime >= interval)
+        if (!active)
+            genShape();
+        if (active)
         {
-            lastDropTime = currentTime;
-            alterShape(0); // Move shape down automatically
-        }
+            checkInput(input);
 
-        if (currentTime - lastMoveTime >= inputInterval)
-        {
-            lastMoveTime = currentTime;
-            checkInput();
-        }
+            if (currentTime - lastDropTime >= interval)
+            {
+                lastDropTime = currentTime;
+                alterShape(0); // Move shape down automatically
+            }
 
-        gatherAndDisplay();
+            if (currentTime - lastMoveTime >= inputInterval)
+            {
+                lastMoveTime = currentTime;
+                checkInput(DOWN);
+            }
+        }
     }
-    else
-    {
-        showEndAnimation();
-        ended = true;
-    }
+
+    // for every update call, remeber to call gameDisplay matrix
 }
 
 // Generate New Shape
@@ -61,8 +59,14 @@ void RIPTetris::genShape()
 
     for (int i = 0; i < 4; i++)
     {
-        coordinates[i][0] = shape[i][0] + 1;
-        coordinates[i][1] = shape[i][1] + GRID_WIDTH / 2;
+        ShapeCoordinates[i][0] = shape[i][0] + 1;
+        ShapeCoordinates[i][1] = shape[i][1] + GRID_WIDTH / 2;
+    }
+
+    if (!validPosition(ShapeCoordinates))
+    {
+        end = true;
+        return;
     }
 
     active = true;
@@ -75,52 +79,126 @@ void RIPTetris::alterShape(int mode)
 
     for (int i = 0; i < 4; i++)
     {
-        newCoordinates[i][0] = coordinates[i][0];
-        newCoordinates[i][1] = coordinates[i][1];
+        newCoordinates[i][0] = ShapeCoordinates[i][0];
+        newCoordinates[i][1] = ShapeCoordinates[i][1];
 
         if (mode == -1)
+        {
             newCoordinates[i][1] -= 1;
+        }
         else if (mode == 1)
+        {
             newCoordinates[i][1] += 1;
+        }
         else if (mode == 0)
-            newCoordinates[i][0] += 1;
+        {
+            for (int i = 0; i < 4; i++)
+                newCoordinates[i][0] += 1; // move down
+
+            if (validPosition(newCoordinates))
+            {
+                memcpy(ShapeCoordinates, newCoordinates, sizeof(newCoordinates));
+                return;
+            }
+            else
+            {
+                // Place shape
+                for (int i = 0; i < 4; i++)
+                {
+                    int y = ShapeCoordinates[i][0];
+                    int x = ShapeCoordinates[i][1];
+                    if (y >= 0 && y < GRID_HEIGHT && x >= 0 && x < GRID_WIDTH)
+                        gameMatrix[y][x] = 1;
+                    if (y >= GRID_HEIGHT)
+                        end = true;
+                }
+                active = false;
+                scanAndClearGrid();
+                return;
+            }
+        }
+
         else if (mode == 3)
         {
-            int pivotX = coordinates[0][1];
-            int pivotY = coordinates[0][0];
+            int rotated[4][2];
+            getRotatedCoordinates(rotated);
 
-            for (int j = 0; j < 4; j++)
+            // Try wall kicks: no shift, left 1, right 1, left 2, right 2
+            const int kicks[] = {0, -1, 1, -2, 2};
+            for (int i = 0; i < 5; i++)
             {
-                int relX = coordinates[j][1] - pivotX;
-                int relY = coordinates[j][0] - pivotY;
+                int kicked[4][2];
+                for (int j = 0; j < 4; j++)
+                {
+                    kicked[j][0] = rotated[j][0];
+                    kicked[j][1] = rotated[j][1] + kicks[i];
+                }
 
-                newCoordinates[j][0] = pivotY - relX;
-                newCoordinates[j][1] = pivotX + relY;
+                if (validPosition(kicked))
+                {
+                    memcpy(ShapeCoordinates, kicked, sizeof(kicked));
+                    scanAndClearGrid();
+                    return;
+                }
             }
+
+            // All kicks failed → no rotation
         }
     }
 
-    memcpy(coordinates, newCoordinates, sizeof(newCoordinates));
+    if (validPosition(newCoordinates))
+    {
+        memcpy(ShapeCoordinates, newCoordinates, sizeof(newCoordinates));
+        scanAndClearGrid();
+    }
+}
+
+void RIPTetris::getRotatedCoordinates(int output[4][2])
+{
+    int pivotX = ShapeCoordinates[0][1];
+    int pivotY = ShapeCoordinates[0][0];
+
+    for (int j = 0; j < 4; j++)
+    {
+        int relX = ShapeCoordinates[j][1] - pivotX;
+        int relY = ShapeCoordinates[j][0] - pivotY;
+        output[j][0] = pivotY - relX;
+        output[j][1] = pivotX + relY;
+    }
+}
+
+bool RIPTetris::validPosition(int coords[4][2])
+{
+    for (int i = 0; i < 4; i++)
+    {
+        int y = coords[i][0];
+        int x = coords[i][1];
+        if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= CHECKING_HEIGHT)
+            return false;
+        if (gameMatrix[y][x] != 0)
+            return false;
+    }
+    return true;
 }
 
 // Check Input
-void RIPTetris::checkInput()
+void RIPTetris::checkInput(direction input)
 {
-    if (digitalRead(ROTATE_PIN) == HIGH && previousRotateState == LOW)
+    switch (input)
     {
-        alterShape(3);
-    }
-    previousRotateState = digitalRead(ROTATE_PIN);
-
-    int Xvalue = analogRead(LEFT_OR_RIGHT_PIN);
-    int Yvalue = analogRead(UP_OR_DOWN_PIN);
-
-    if (Xvalue > 900)
-        alterShape(1);
-    if (Xvalue < 100)
-        alterShape(-1);
-    if (Yvalue < 100)
+    case DOWN:
         alterShape(0);
+        break;
+    case LEFT:
+        alterShape(-1);
+        break;
+    case RIGHT:
+        alterShape(1);
+        break;
+    case ROTATE:
+        alterShape(3);
+        break;
+    }
 }
 
 // Scan & Clear Rows
@@ -128,12 +206,12 @@ void RIPTetris::scanAndClearGrid()
 {
     int clearedRows = 0;
 
-    for (int i = CHECKING_HEIGHT - 1; i >= 3; i--)
+    for (int i = CHECKING_HEIGHT - 1; i >= 2; i--)
     {
         bool isFull = true;
         for (int j = 0; j < GRID_WIDTH; j++)
         {
-            if (displayMatrix[i][j] == 0)
+            if (gameMatrix[i][j] == 0)
             {
                 isFull = false;
                 break;
@@ -142,8 +220,13 @@ void RIPTetris::scanAndClearGrid()
 
         if (isFull)
         {
-            memset(displayMatrix[i], 0, sizeof(displayMatrix[i]));
+            for (int k = i; k > 0; k--)
+            {
+                memcpy(gameMatrix[k], gameMatrix[k - 1], sizeof(gameMatrix[k]));
+            }
+            memset(gameMatrix[0], 0, sizeof(gameMatrix[0])); // Top row is now empty
             clearedRows++;
+            i++; // Recheck the same row index after shifting
         }
     }
 
@@ -157,36 +240,46 @@ void RIPTetris::scanAndClearGrid()
     {
         interval = max(100, interval - 50);
     }
-
-    sendScore(score);
 }
 
-// Display Updates
-void RIPTetris::gatherAndDisplay()
+void RIPTetris::getDisplayMatrix(int outMatrix[GRID_HEIGHT][GRID_WIDTH])
 {
-    for (int i = 0; i < GRID_WIDTH; i++)
+    // Copy placed blocks first
+    for (int y = 0; y < GRID_HEIGHT; y++)
     {
-        memcpy(displayMatrix[i], &displayMatrix[i + 2][0], sizeof(displayMatrix[i]));
+        for (int x = 0; x < GRID_WIDTH; x++)
+        {
+            outMatrix[y][x] = gameMatrix[y][x];
+        }
     }
 
-    topLM->Symbol(displayMatrix);
-    botLM->Symbol(displayMatrix);
-}
-
-// Show End Animation
-void RIPTetris::showEndAnimation()
-{
-    for (int i = CHECKING_HEIGHT; i > 0; i--)
+    // Overlay the current falling shape
+    if (active)
     {
-        memset(displayMatrix[i], 0, sizeof(displayMatrix[i]));
-        gatherAndDisplay();
-        delay(50);
+        for (int i = 0; i < 4; i++)
+        {
+            int y = ShapeCoordinates[i][0];
+            int x = ShapeCoordinates[i][1];
+            if (y >= 0 && y < GRID_HEIGHT && x >= 0 && x < GRID_WIDTH)
+                outMatrix[y][x] = 1;
+        }
     }
 }
 
-// Send Score
-void RIPTetris::sendScore(int score)
-{
-    Serial5.write(lowByte(score));
-    Serial5.write(highByte(score));
-}
+// // Show End Animation
+// void RIPTetris::showEndAnimation()
+// {
+//     for (int i = CHECKING_HEIGHT; i > 0; i--)
+//     {
+//         memset(gameMatrix[i], 0, sizeof(gameMatrix[i]));
+//         gatherAndDisplay();
+//         delay(50);
+//     }
+// }
+
+// // Send Score
+// void RIPTetris::sendScore(int score)
+// {
+//     Serial5.write(lowByte(score));
+//     Serial5.write(highByte(score));
+// }
