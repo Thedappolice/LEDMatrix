@@ -1,488 +1,561 @@
-#include <math.h> // Math library for functions like pow()
 
-// Pin Definitions for Controls
-#define ROTATE_PIN 32
-#define LEFT_OR_RIGHT_PIN 23
-#define UP_OR_DOWN_PIN 22
-
-// Grid Constants
-#define GRID_WIDTH 8                      // Number of columns in the grid
-#define GRID_HEIGHT (GRID_WIDTH * 2)      // Total grid height (16 rows for an 8x8 matrix)
-#define CHECKING_HEIGHT (GRID_HEIGHT + 2) // Includes extra rows for overflow checking
-
-// LED Matrix Library and Pin Configurations
 #include <LEDMatrix.h>
 
-// Pin configurations for the top LED matrix
+// ============================================================================
+// HARDWARE CONFIGURATION
+// ============================================================================
+
+enum Action
+{
+    LOCK = 0,
+    SHIFT = 1,
+    DROP = 2,
+    ROTATE = 3,
+    UPDATE = 4
+};
+
+// Control Buttons
+#define ROTATE_PIN 32
+// Joystick Axis Pins
+#define JOYSTICK_X_PIN 23 // Left/Right
+#define JOYSTICK_Y_PIN 22 // Down
+
+// LED Matrix 1 (Top) - Rows 0-7
 int posPintop[] = {19, 18, 17, 16, 15, 14, 13, 41};
 int negPintop[] = {40, 39, 38, 37, 36, 35, 34, 33};
 
-// Pin configurations for the bottom LED matrix
+// LED Matrix 2 (Bottom) - Rows 8-15
 int posPinbot[] = {2, 3, 4, 5, 6, 7, 8, 9};
 int negPinbot[] = {10, 11, 12, 24, 25, 26, 27, 28};
 
-// Create instances for LED matrices
-LEDMatrix<GRID_WIDTH, GRID_WIDTH> LMtop(posPintop, negPintop);
-LEDMatrix<GRID_WIDTH, GRID_WIDTH> LMbot(posPinbot, negPinbot);
+// CORRECT instantiation for your library
+LEDMatrix<8, 8> LMtop(posPintop, negPintop);
+LEDMatrix<8, 8> LMbot(posPinbot, negPinbot);
 
-// Game Data Structures
+// ============================================================================
+// GAME GRID CONSTANTS
+// ============================================================================
 
-// Represents a Tetrimino (Tetris shape)
-typedef struct
-{
-    int shape[4][2];       // Relative positions of blocks in the shape
-    int coordinates[4][2]; // Absolute positions of blocks on the grid
-    bool active;           // Whether the shape is currently active
-} Tetrimino;
+const int GRID_W = 8;
+const int GRID_H = 16;
+const int BUFFER_H = GRID_H + 2;
 
-// Global Variables
+// ============================================================================
+// MEMORY STRUCTURES
+// ============================================================================
 
-Tetrimino currentShape = {0}; // Current active Tetrimino
+int locked[BUFFER_H][GRID_W] = {{0}};
+int display[BUFFER_H][GRID_W] = {{0}};
 
-// Memory structure for the game grid
-struct GridMemory
-{
-    int stable[CHECKING_HEIGHT][GRID_WIDTH];  // Stable grid (occupied blocks)
-    int display[CHECKING_HEIGHT][GRID_WIDTH]; // Display grid (active shapes + stable grid)
-    int top[GRID_WIDTH][GRID_WIDTH];          // Top LED matrix data
-    int bottom[GRID_WIDTH][GRID_WIDTH];       // Bottom LED matrix data
+// LED Buffers - MUST be [8][8] for your library's Symbol() method
+int topBuf[8][8] = {{0}};
+int botBuf[8][8] = {{0}};
 
-    // Clears the stable grid
-    void clearStable()
-    {
-        memset(stable, 0, sizeof(stable));
-    }
+// ============================================================================
+// TETROMINO STATE
+// ============================================================================
 
-    // Clears the display grid
-    void clearDisplay()
-    {
-        memset(display, 0, sizeof(display));
-    }
+int currentPiece[4][2] = {{0}};
+int absolutePos[4][2] = {{0}};
+
+bool hasPiece = false;
+int shiftDir = 0;
+
+// ============================================================================
+// WALL KICK DATA
+// ============================================================================
+
+const int WALL_KICK_TESTS[][2] = {
+    {0, 0},   // Normal rotation
+    {0, -1},  // Left 1
+    {0, 1},   // Right 1
+    {-1, 0},  // Up 1
+    {0, -2},  // Left 2
+    {0, 2},   // Right 2
+    {-1, -1}, // Up-left
+    {-1, 1}   // Up-right
 };
 
-// Create an instance of GridMemory
-GridMemory grid;
+const int NUM_KICK_TESTS = 8;
 
-// Timing for game
-unsigned long prev = 0;       // Previous time for game interval
-unsigned long interval = 500; // Time between automatic block drops (ms)
+// ============================================================================
+// GAME STATE
+// ============================================================================
 
-// timing for inputs
-unsigned long inputprev = 0;       // Previous time for input
-unsigned long inputinterval = 100; // Time between accpeted inputs (ms)
+bool gameOver = false;
+bool enableScoring = true;
+int score = 0;
 
-// Track the previous state of the rotate button
-bool previousRotateState = LOW;
+// Timing
+unsigned long fallInterval = 500;
+unsigned long lastFallTime = 0;
+unsigned long lastInputTime = 0;
+unsigned long inputInterval = 100;
+unsigned long lastRotateTime = 0;
+unsigned long rotateInterval = 300;
 
-// Game State Variables
-bool initialized = false;
-int score = 0;      // Current score
-bool end = false;   // Whether the game is over
-bool ended = false; // Whether the end animation has been shown
+// Display refresh timing
+unsigned long lastDisplayTime = 0;
+unsigned long displayInterval = 2; // Refresh display every 2ms
 
-/// --- Function Definitions ---
+int prevButtonStates = 0;
 
-/**
- * Displays a predefined symbol on the LED matrix.
- * @param LM - Reference to the LEDMatrix object to display on.
- * @param input - Character representing the symbol ('1', '2', '3', or 'E').
- * @param duration - Optional duration (in milliseconds) for displaying the symbol. Default is 0 (persistent display).
- */
-void Char(LEDMatrix<8, 8> &LM, char input, unsigned long duration = 0)
+// ============================================================================
+// TETROMINO DEFINITIONS
+// ============================================================================
+
+int PIECE_J[4][2] = {{0, 3}, {1, 1}, {0, 1}, {0, -1}};
+int PIECE_L[4][2] = {{0, 3}, {1, -1}, {0, 1}, {0, -1}};
+int PIECE_S[4][2] = {{0, 3}, {0, 1}, {1, 0}, {1, -1}};
+int PIECE_Z[4][2] = {{0, 3}, {0, -1}, {1, 0}, {1, 1}};
+int PIECE_T[4][2] = {{0, 3}, {0, 1}, {1, 0}, {0, -1}};
+int PIECE_O[4][2] = {{0, 3}, {1, 0}, {0, 1}, {1, 1}};
+int PIECE_I[4][2] = {{0, 3}, {0, 1}, {0, -1}, {0, -2}};
+
+int *pieceTemplates[7] = {
+    (int *)PIECE_J, (int *)PIECE_L, (int *)PIECE_S, (int *)PIECE_Z,
+    (int *)PIECE_T, (int *)PIECE_O, (int *)PIECE_I};
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+void calculatePositions()
 {
-    // Predefined symbols
-    int symbols[4][8][8] = {
-        {// Symbol '1'
-         {0, 0, 0, 1, 1, 0, 0, 0},
-         {0, 0, 1, 1, 1, 0, 0, 0},
-         {0, 1, 1, 1, 1, 0, 0, 0},
-         {0, 0, 0, 1, 1, 0, 0, 0},
-         {0, 0, 0, 1, 1, 0, 0, 0},
-         {0, 0, 0, 1, 1, 0, 0, 0},
-         {0, 1, 1, 1, 1, 1, 1, 0},
-         {0, 1, 1, 1, 1, 1, 1, 0}},
-        {// Symbol '2'
-         {0, 0, 1, 1, 1, 1, 0, 0},
-         {0, 1, 1, 1, 1, 1, 1, 0},
-         {0, 1, 1, 0, 0, 1, 1, 0},
-         {0, 0, 0, 0, 1, 1, 1, 0},
-         {0, 0, 0, 1, 1, 1, 0, 0},
-         {0, 0, 1, 1, 1, 0, 0, 0},
-         {0, 1, 1, 1, 1, 1, 1, 0},
-         {0, 1, 1, 1, 1, 1, 1, 0}},
-        {// Symbol '3'
-         {0, 0, 1, 1, 1, 1, 0, 0},
-         {0, 1, 1, 1, 1, 1, 1, 0},
-         {0, 0, 0, 0, 0, 1, 1, 0},
-         {0, 0, 1, 1, 1, 1, 0, 0},
-         {0, 0, 1, 1, 1, 1, 0, 0},
-         {0, 0, 0, 0, 0, 1, 1, 0},
-         {0, 1, 1, 1, 1, 1, 1, 0},
-         {0, 0, 1, 1, 1, 1, 0, 0}},
-        {// Symbol 'E' (End)
-         {0, 0, 0, 0, 0, 0, 0, 0},
-         {0, 0, 0, 0, 0, 0, 0, 0},
-         {1, 1, 1, 0, 0, 0, 0, 1},
-         {1, 0, 0, 0, 0, 0, 0, 1},
-         {1, 1, 0, 0, 1, 0, 0, 1},
-         {1, 0, 0, 1, 0, 1, 1, 0},
-         {1, 1, 1, 1, 0, 1, 0, 1},
-         {0, 0, 0, 0, 0, 0, 0, 0}}};
+    absolutePos[0][0] = currentPiece[0][0];
+    absolutePos[0][1] = currentPiece[0][1];
 
-    // Map the input character to the symbol index
-    int symbolIndex = -1;
-    switch (input)
+    for (int i = 1; i < 4; i++)
     {
-    case '1':
-        symbolIndex = 0;
-        break;
-    case '2':
-        symbolIndex = 1;
-        break;
-    case '3':
-        symbolIndex = 2;
-        break;
-    case 'E':
-        symbolIndex = 3;
-        break;
-    default:
-        break;
-    }
-
-    // Display the symbol on the LED matrix
-    if (symbolIndex != -1)
-    {
-        (duration > 0) ? LM.Symbol(symbols[symbolIndex], duration) : LM.Symbol(symbols[symbolIndex]);
+        absolutePos[i][0] = currentPiece[0][0] + currentPiece[i][0];
+        absolutePos[i][1] = currentPiece[0][1] + currentPiece[i][1];
     }
 }
 
-/**
- * Updates the position or rotation of the current shape.
- * @param mode - Movement or rotation mode:
- *               -1: Left, 1: Right, 0: Down, 3: Rotate
- */
-void alterShape(int mode)
+bool isPositionValid()
 {
-    int newCoordinates[4][2]; // Temporary coordinates for validation
+    calculatePositions();
 
-    // Calculate the new positions
     for (int i = 0; i < 4; i++)
     {
-        newCoordinates[i][0] = currentShape.coordinates[i][0];
-        newCoordinates[i][1] = currentShape.coordinates[i][1];
+        int row = absolutePos[i][0];
+        int col = absolutePos[i][1];
 
-        if (mode == -1) // Move left
-            newCoordinates[i][1] -= 1;
-        else if (mode == 1) // Move right
-            newCoordinates[i][1] += 1;
-        else if (mode == 0) // Move down
-            newCoordinates[i][0] += 1;
-        else if (mode == 3) // Rotate
+        if (col < 0 || col >= GRID_W || row < 0 || row >= BUFFER_H)
         {
-            int y = currentShape.coordinates[0][0];
-            int x = currentShape.coordinates[0][1];
-            newCoordinates[i][0] = y - (currentShape.coordinates[i][1] - x);
-            newCoordinates[i][1] = x + (currentShape.coordinates[i][0] - y);
+            return false;
+        }
+
+        if (locked[row][col] == 1)
+        {
+            return false;
         }
     }
 
-    // Validate the new positions
-    bool validMove = true;
+    return true;
+}
+
+// ============================================================================
+// PIECE OPERATIONS
+// ============================================================================
+
+void lockPiece()
+{
+    calculatePositions();
     for (int i = 0; i < 4; i++)
     {
-        int y = newCoordinates[i][0];
-        int x = newCoordinates[i][1];
+        locked[absolutePos[i][0]][absolutePos[i][1]] = 1;
+    }
+}
 
-        if (y >= CHECKING_HEIGHT || x < 0 || x >= GRID_WIDTH || grid.stable[y][x])
+void shiftPiece()
+{
+    int originalCol = currentPiece[0][1];
+    currentPiece[0][1] += shiftDir;
+
+    if (!isPositionValid())
+    {
+        currentPiece[0][1] = originalCol;
+    }
+}
+
+void dropPiece()
+{
+    int originalRow = currentPiece[0][0];
+    currentPiece[0][0]++;
+
+    if (!isPositionValid())
+    {
+        currentPiece[0][0] = originalRow;
+        lockPiece();
+        hasPiece = false;
+        clearCompletedLines();
+    }
+}
+
+void rotatePiece()
+{
+    int savedOffsets[3][2];
+    int savedAnchorRow = currentPiece[0][0];
+    int savedAnchorCol = currentPiece[0][1];
+
+    for (int i = 0; i < 3; i++)
+    {
+        savedOffsets[i][0] = currentPiece[i + 1][0];
+        savedOffsets[i][1] = currentPiece[i + 1][1];
+    }
+
+    // Rotate: (row, col) → (col, -row)
+    for (int i = 1; i < 4; i++)
+    {
+        int temp = currentPiece[i][0];
+        currentPiece[i][0] = currentPiece[i][1];
+        currentPiece[i][1] = -temp;
+    }
+
+    // Try wall kicks
+    bool rotationSucceeded = false;
+
+    for (int test = 0; test < NUM_KICK_TESTS; test++)
+    {
+        currentPiece[0][0] = savedAnchorRow + WALL_KICK_TESTS[test][0];
+        currentPiece[0][1] = savedAnchorCol + WALL_KICK_TESTS[test][1];
+
+        if (isPositionValid())
         {
-            validMove = false;
+            rotationSucceeded = true;
             break;
         }
     }
 
-    // Apply the new positions if valid
-    if (validMove)
+    // Revert if all kicks failed
+    if (!rotationSucceeded)
     {
-        memcpy(currentShape.coordinates, newCoordinates, sizeof(newCoordinates));
+        currentPiece[0][0] = savedAnchorRow;
+        currentPiece[0][1] = savedAnchorCol;
 
-        if (mode == 0) // Handle locking when moving down
+        for (int i = 1; i < 4; i++)
         {
-            for (int i = 0; i < 4; i++)
-            {
-                if (currentShape.coordinates[i][0] == CHECKING_HEIGHT - 1 || grid.stable[currentShape.coordinates[i][0] + 1][currentShape.coordinates[i][1]])
-                {
-                    // Lock the shape into the stable grid
-                    for (int j = 0; j < 4; j++)
-                        grid.stable[currentShape.coordinates[j][0]][currentShape.coordinates[j][1]] = 1;
+            currentPiece[i][0] = savedOffsets[i - 1][0];
+            currentPiece[i][1] = savedOffsets[i - 1][1];
+        }
+    }
+}
 
-                    currentShape.active = false; // Deactivate the current shape
-                    scanAndClearGrid();          // Check for and clear full rows
-                    break;
-                }
-            }
+void handlePiece(Action action)
+{
+    switch (action)
+    {
+    case LOCK:
+        lockPiece();
+        break;
+    case SHIFT:
+        shiftPiece();
+        break;
+    case DROP:
+        dropPiece();
+        break;
+    case ROTATE:
+        rotatePiece();
+        break;
+    case UPDATE:
+        calculatePositions();
+        break;
+    }
+}
+
+// ============================================================================
+// PIECE GENERATION
+// ============================================================================
+
+void spawnPiece()
+{
+    if (!hasPiece)
+    {
+        int shapeIndex = random(0, 7);
+        memcpy(currentPiece, pieceTemplates[shapeIndex], 8 * sizeof(int));
+        hasPiece = true;
+        handlePiece(UPDATE);
+    }
+}
+
+// ============================================================================
+// INPUT HANDLING
+// ============================================================================
+
+int readButtons()
+{
+    int state = 0;
+
+    int xVal = analogRead(JOYSTICK_X_PIN);
+    int yVal = analogRead(JOYSTICK_Y_PIN);
+
+    if (xVal > 900)
+    {
+        state |= (1 << 0);
+    }
+
+    if (xVal < 388)
+    {
+        state |= (1 << 1);
+    }
+
+    if (yVal > 921)
+    {
+        state |= (1 << 2);
+    }
+
+    if (digitalRead(ROTATE_PIN) == HIGH)
+    {
+        state |= (1 << 3);
+    }
+
+    return state;
+}
+
+void processInput()
+{
+    int current = readButtons();
+    int pressed = current & ~prevButtonStates;
+
+    if (pressed & (1 << 0))
+    {
+        shiftDir = -1;
+        handlePiece(SHIFT);
+    }
+
+    if (pressed & (1 << 1))
+    {
+        shiftDir = 1;
+        handlePiece(SHIFT);
+    }
+
+    if (pressed & (1 << 2))
+    {
+        handlePiece(DROP);
+    }
+
+    if (pressed & (1 << 3))
+    {
+        if (millis() - lastRotateTime >= rotateInterval)
+        {
+            handlePiece(ROTATE);
+            lastRotateTime = millis();
+        }
+    }
+
+    prevButtonStates = current;
+}
+
+// ============================================================================
+// LINE CLEARING & SCORING
+// ============================================================================
+
+// void clearCompletedLines();  // Forward declaration
+
+// ============================================================================
+// DISPLAY RENDERING
+// ============================================================================
+
+/**
+ * Update display buffers (non-blocking)
+ * Your library's Symbol() handles the actual multiplexing
+ */
+void updateDisplay()
+{
+    // Composite locked + active piece
+    memcpy(display, locked, sizeof(locked));
+    calculatePositions();
+
+    for (int i = 0; i < 4; i++)
+    {
+        display[absolutePos[i][0]][absolutePos[i][1]] = 1;
+    }
+
+    // Split into 8x8 buffers for each matrix
+    // Top matrix: rows 2-9 of game grid
+    // Bottom matrix: rows 10-17 of game grid
+    for (int row = 0; row < 8; row++)
+    {
+        for (int col = 0; col < 8; col++)
+        {
+            topBuf[row][col] = display[row + 2][col];
+            botBuf[row][col] = display[row + 10][col];
         }
     }
 }
 
 /**
- * Generates a new random Tetrimino at the top of the grid.
+ * Refresh LEDs using your library's Symbol() method
+ * CRITICAL: Use minimal showTime to avoid blocking!
  */
-void genShape()
+void refreshLEDs()
 {
-    if (!currentShape.active)
+    if (!gameOver)
     {
-        const int shapes[7][4][2] = {
-            {{0, 0}, {0, 1}, {1, 0}, {1, 1}},  // O shape
-            {{0, 0}, {0, 1}, {0, 2}, {0, 3}},  // I shape
-            {{0, 0}, {1, 0}, {1, 1}, {1, 2}},  // J shape
-            {{0, 0}, {1, 0}, {0, 1}, {0, 2}},  // L shape
-            {{0, 0}, {0, 1}, {1, 1}, {1, 2}},  // S shape
-            {{0, 0}, {0, 1}, {1, 0}, {1, -1}}, // Z shape
-            {{0, 0}, {0, 1}, {1, 0}, {0, -1}}  // T shape
-        };
-
-        // Randomly select a shape and initialize it
-        int randomIndex = random(0, 7);
-        memcpy(currentShape.shape, shapes[randomIndex], sizeof(currentShape.shape));
-
-        for (int i = 0; i < 4; i++)
-        {
-            currentShape.coordinates[i][0] = currentShape.shape[i][0] + 1;
-            currentShape.coordinates[i][1] = currentShape.shape[i][1] + GRID_WIDTH / 2;
-        }
-
-        currentShape.active = true;
+        // Use 2ms showTime - your library will multiplex during this time
+        LMtop.Symbol(topBuf, 2);
+        LMbot.Symbol(botBuf, 2);
     }
 }
 
-/**
- * Clears a specific row in the stable memory.
- * @param row - The row to be cleared.
- */
-void clearRow(int row)
-{
-    memset(grid.stable[row], 0, sizeof(grid.stable[row]));
-}
+// ============================================================================
+// LINE CLEARING IMPLEMENTATION
+// ============================================================================
 
-/**
- * Shifts all rows down starting from a specific row.
- * @param startRow - The row to start shifting down from.
- */
-void shiftRowsDown(int startRow)
+void clearCompletedLines()
 {
-    for (int i = startRow; i > 0; i--)
+    // Game Over Check
+    for (int row = 0; row < 2; row++)
     {
-        memcpy(grid.stable[i], grid.stable[i - 1], sizeof(grid.stable[i]));
-    }
-}
-
-/**
- * Scans the grid for full rows, clears them, and updates the score.
- */
-void scanAndClearGrid()
-{
-    // Check for overflow in the illegal zone (top 3 rows)
-    for (int i = 0; i < 3; i++)
-    {
-        for (int j = 0; j < GRID_WIDTH; j++)
+        for (int col = 0; col < GRID_W; col++)
         {
-            if (grid.stable[i][j] == 1)
+            if (locked[row][col] == 1)
             {
-                end = true; // Game over
+                gameOver = true;
                 return;
             }
         }
     }
 
-    int clearedRows = 0;
+    // Find full rows
+    int fullRows[4] = {-1, -1, -1, -1};
+    int fullCount = 0;
 
-    // Scan from bottom to top to find and clear full rows
-    for (int i = CHECKING_HEIGHT - 1; i >= 3; i--)
+    for (int row = 2; row < BUFFER_H; row++)
     {
         bool isFull = true;
-        for (int j = 0; j < GRID_WIDTH; j++)
+
+        for (int col = 0; col < GRID_W; col++)
         {
-            if (grid.stable[i][j] == 0)
+            if (locked[row][col] == 0)
             {
                 isFull = false;
                 break;
             }
         }
 
-        if (isFull)
+        if (isFull && fullCount < 4)
         {
-            clearedRows++;
-            clearRow(i); // Clear this row
+            fullRows[fullCount++] = row;
+        }
+    }
 
-            // Shift all rows above down by one
-            for (int k = i; k > 0; k--)
+    // Clear and collapse
+    if (fullCount > 0)
+    {
+        for (int i = 0; i < fullCount; i++)
+        {
+            for (int col = 0; col < GRID_W; col++)
             {
-                memcpy(grid.stable[k], grid.stable[k - 1], sizeof(grid.stable[k]));
+                locked[fullRows[i]][col] = 0;
             }
-
-            // Reset the top row to empty
-            memset(grid.stable[0], 0, sizeof(grid.stable[0]));
-
-            // Since we shifted everything down, we must re-check this row
-            i++;
         }
-    }
 
-    // Update the score based on the number of cleared rows
-    if (clearedRows > 0)
-    {
-        // Tetris standard scoring system
-        int points[] = {0, 40, 100, 300, 1200};
-        score += points[clearedRows];
-
-        // Cap the score at 9999
-        if (score > 9999)
+        int topRow = fullRows[0];
+        for (int row = topRow; row > 0; row--)
         {
-            score = 9999;
+            for (int col = 0; col < GRID_W; col++)
+            {
+                locked[row][col] = locked[row - 1][col];
+            }
         }
 
-        sendScore(score);
-    }
-}
-
-/**
- * Checks for user inputs and triggers the appropriate actions.
- */
-void checkInput()
-{
-    // Read the current state of the rotation button
-    bool currentRotateState = digitalRead(ROTATE_PIN);
-
-    // Detect rising edge: from LOW to HIGH
-    if (currentRotateState == HIGH && previousRotateState == LOW)
-    {
-        alterShape(3); // Rotate once
-    }
-
-    // Update the previous state
-    previousRotateState = currentRotateState;
-
-    // // Other button inputs (no changes needed)
-    int Xvalue = analogRead(LEFT_OR_RIGHT_PIN);
-    int Yvalue = analogRead(UP_OR_DOWN_PIN);
-
-    if (Xvalue > 900)
-    {
-        alterShape(-1); // Move Left
-    }
-    if (Xvalue < 100)
-    {
-        alterShape(1); // Move Right
-    }
-    if (Yvalue > 900)
-    {
-        alterShape(0); // Move Down
-    }
-}
-
-/**
- * Updates the display memory and sends it to the LED matrices.
- */
-void gatherAndDisplay()
-{
-    if (!end)
-    { // Copy the stable grid into the display grid
-        memcpy(grid.display, grid.stable, sizeof(grid.stable));
-
-        // Add the active shape to the display grid
-        for (int i = 0; i < 4; i++)
+        if (enableScoring)
         {
-            grid.display[currentShape.coordinates[i][0]][currentShape.coordinates[i][1]] = 1;
+            int points = 1;
+            for (int i = 0; i < fullCount; i++)
+            {
+                points *= fullCount;
+            }
+            score += points;
+            sendScore(score);
         }
     }
-
-    // Update the top and bottom matrix displays
-    for (int i = 0; i < GRID_WIDTH; i++)
-    {
-        memcpy(grid.top[i], &grid.display[i + 2][0], sizeof(grid.top[i]));                    // Top matrix
-        memcpy(grid.bottom[i], &grid.display[i + GRID_WIDTH + 2][0], sizeof(grid.bottom[i])); // Bottom matrix
-    }
-
-    // Send updated data to the LED matrices
-    LMtop.Symbol(grid.top, 2);
-    LMbot.Symbol(grid.bottom, 2);
 }
 
-/**
- * Displays the "end game" animation.
- */
-void showEndAnimation()
+// ============================================================================
+// SERIAL COMMUNICATION
+// ============================================================================
+
+void sendScore(int value)
 {
-    for (int i = CHECKING_HEIGHT; i > 0; i--)
-    {
-        for (int j = 0; j < GRID_WIDTH; j++)
-        {
-            grid.display[i][j] = 0; // Clear rows one by one
-        }
-        gatherAndDisplay();
-        delay(50); // Small delay for animation effect
-    }
+    Serial5.write(lowByte(value));
+    Serial5.write(highByte(value));
 }
 
-/**
- * Sends the score to another board or device.
- * @param score - The current score to be sent.
- */
-void sendScore(int score)
-{
-    Serial5.write(lowByte(score));  // Send the lower byte
-    Serial5.write(highByte(score)); // Send the higher byte
-}
+// ============================================================================
+// GAME LIFECYCLE
+// ============================================================================
 
-/// --- Arduino Setup and Main Loop ---
-
-/**
- * Arduino setup function, initializes pins and the game.
- */
 void setup()
 {
-    Serial5.begin(9600); // Initialize Serial7 for score transmission
+    randomSeed(analogRead(29));
 
-    // Initialize control pins as input
+    Serial.begin(9600);
+    Serial5.begin(9600);
+
     pinMode(ROTATE_PIN, INPUT);
 
-    randomSeed(analogRead(21)); // Seed the random number generator
+    // Give Nano time to finish booting, then signal game start
     delay(3000);
-    sendScore(10000); // Signal game start to another board
+    sendScore(10000); // 10000 = "game start" sentinel
 }
 
-/**
- * Arduino main loop function, runs the game logic continuously.
- */
 void loop()
 {
-    if (ended)
+    if (gameOver)
     {
-        Char(LMbot, 'E', 2000); // Show the 'E' symbol for 2000 ms
+        Serial.println(score);
+        delay(100); // Prevent spamming
+        return;
     }
-    else if (!end)
-    {
-        genShape(); // Generate a new shape if needed
 
-        // Handle automatic downward movement
-        if (millis() - prev >= interval)
+    spawnPiece();
+
+    // Input handling
+    if (millis() - lastInputTime >= inputInterval)
+    {
+        lastInputTime = millis();
+        processInput();
+    }
+
+    // Gravity
+    if (millis() - lastFallTime >= fallInterval)
+    {
+        lastFallTime = millis();
+        handlePiece(DROP);
+    }
+
+    // Update and refresh display
+    updateDisplay();
+    refreshLEDs(); // This calls Symbol() which blocks for 2ms
+    // debugDisplay();
+}
+
+void debugDisplay()
+{
+    Serial.println("--- TETRIS GRID ---");
+    // We iterate from row 2 to 17 because your game uses
+    // rows 0-1 for spawn/buffer and rows 2-17 for the actual LED matrices
+    for (int row = 2; row < BUFFER_H; row++)
+    {
+        Serial.print(row < 10 ? " " : ""); // Align row numbers
+        Serial.print(row);
+        Serial.print(" | ");
+
+        for (int col = 0; col < GRID_W; col++)
         {
-            prev = millis();
-            alterShape(0);
+            if (display[row][col] == 1)
+            {
+                Serial.print("[x]"); // Block present
+            }
+            else
+            {
+                Serial.print("[ ]"); // Empty space
+            }
         }
-
-        // Handle input timing here instead of inside checkInput()
-        if (millis() - inputprev >= inputinterval)
-        {
-            inputprev = millis();
-            checkInput(); // Now checkInput() just reads and acts on inputs
-        }
-
-        gatherAndDisplay();
+        Serial.println(" |");
     }
-    else
-    {
-        showEndAnimation();
-        ended = true;
-    }
+    Serial.println("-------------------");
 }

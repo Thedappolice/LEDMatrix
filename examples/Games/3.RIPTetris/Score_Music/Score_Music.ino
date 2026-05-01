@@ -63,17 +63,12 @@ void receiveSerial()
     {
         byte low = Serial.read();
         byte high = Serial.read();
-
         int input = word(high, low);
 
         if (input == 10000)
-        {
             initiate = true;
-        }
         else if (input >= 0 && input <= 9999)
-        {
             score = input;
-        }
     }
 }
 
@@ -116,7 +111,7 @@ void loop()
     receiveSerial();
     if (!initiate)
     {
-        dis.scan(scoreNum, nullptr, true); // Refresh the display with updated score
+        dis.scan(scoreNum, nullptr); // Refresh the display with updated score
     }
     else
     {
