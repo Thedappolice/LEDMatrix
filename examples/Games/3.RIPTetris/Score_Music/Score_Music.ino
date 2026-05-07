@@ -15,19 +15,25 @@ Dis7Seg dis('-', segmentPins, 4, digitPins);
 // Initialize array with -1, and the ones place with 0
 int scoreNum[4] = {-1, -1, -1, 0};
 int score = 0;
+bool gameOver = false;
 
-bool initiate = false;
+int serial = 0;
 
 unsigned long previousMillis = 0;
 int songIndex = 0;
 bool isPlayingNote = true;
 unsigned long noteDuration = 0;
+bool musicEnabled = true;
 
 const int songNotes[][2] = {
     {659, 400}, {494, 200}, {523, 200}, {587, 400}, {523, 200}, {494, 200}, {440, 400}, {440, 200}, {523, 200}, {659, 400}, {587, 200}, {523, 200}, {494, 400}, {523, 200}, {587, 400}, {659, 400}, {523, 400}, {440, 400}, {440, 400}, {587, 400}, {698, 200}, {880, 400}, {784, 200}, {698, 200}, {659, 600}, {523, 200}, {659, 400}, {587, 200}, {523, 200}, {494, 400}, {494, 200}, {523, 200}, {587, 400}, {659, 400}, {523, 400}, {440, 400}, {440, 400}, {659, 400}, {494, 200}, {523, 200}, {587, 400}, {523, 200}, {494, 200}, {440, 400}, {440, 200}, {523, 200}, {659, 400}, {587, 200}, {523, 200}, {494, 400}, {523, 200}, {587, 400}, {659, 400}, {523, 400}, {440, 400}, {440, 400}, {587, 400}, {698, 200}, {880, 400}, {784, 200}, {698, 200}, {659, 600}, {523, 200}, {659, 400}, {587, 200}, {523, 200}, {494, 400}, {494, 200}, {523, 200}, {587, 400}, {659, 400}, {523, 400}, {440, 400}, {440, 400}};
 
 void playSong()
 {
+    if (!musicEnabled)
+    {
+        return;
+    }
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= noteDuration)
@@ -57,65 +63,91 @@ void playSong()
     }
 }
 
-void receiveSerial()
+int receiveSerial()
 {
-    while (Serial.available() >= 2)
+    Serial.println("Serial check triggered");
+    if (Serial.available() >= 2)
     {
         byte low = Serial.read();
         byte high = Serial.read();
         int input = word(high, low);
 
-        if (input == 10000)
-            initiate = true;
-        else if (input >= 0 && input <= 9999)
-            score = input;
+        return input;
     }
+    return -1;
 }
 
-void updateScoreDisplay()
+void updateScoreDigits()
 {
-    // Reset scoreNum before processing
     for (int i = 0; i < 4; i++)
-        scoreNum[i] = -1; // Assume all are blank initially
-
-    // Handle the special case where score is 0
+        scoreNum[i] = -1;
     if (score == 0)
     {
-        scoreNum[3] = 0; // Display '0' in the units place
+        scoreNum[3] = 0;
     }
     else
     {
         int tempScore = score;
-        int index = 3; // Start from the rightmost digit
-
-        // Extract digits, ensuring leading zeros are blank
-        while (tempScore > 0)
+        int index = 3;
+        while (tempScore > 0 && index >= 0)
         {
-            scoreNum[index] = tempScore % 10; // Get last digit
+            scoreNum[index] = tempScore % 10;
             tempScore /= 10;
-            index--; // Move left
+            index--;
         }
     }
-
-    // Update the 7-segment display
-    dis.scan(scoreNum);
 }
 
 void setup()
 {
     Serial.begin(9600); // Initialize serial communication at 9600 baud
+    bool next_step = false;
+
+    while (!next_step)
+    {
+        serial = receiveSerial();
+        if (serial == 10000)
+        {
+            next_step = true; // Wait for the start signal
+            gameOver = false; // Reset the latch
+        }
+    }
 }
 
 void loop()
 {
-    receiveSerial();
-    if (!initiate)
+    Serial.print("Score: ");
+    Serial.print(score);
+    Serial.print(" | Array: [");
+    for (int i = 0; i < 4; i++)
     {
-        dis.scan(scoreNum, nullptr); // Refresh the display with updated score
+        Serial.print(scoreNum[i]);
+        if (i < 3)
+            Serial.print(", ");
     }
-    else
+    Serial.println("]");
+
+    // 3. Hardware Refresh (Must run as fast as possible)
+    if (!gameOver)
     {
+        serial = receiveSerial();
+
+        if (serial != -1)
+        {
+            if (serial == 10001)
+            {
+                gameOver = true; // Set the latch
+                noTone(buzzerPin);
+            }
+            // ONLY update the score if the game is actually running
+            else
+            {
+                score = serial;
+                updateScoreDigits();
+            }
+        }
+
         playSong();
-        updateScoreDisplay();
     }
+    dis.scan(scoreNum);
 }

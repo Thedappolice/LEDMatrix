@@ -506,8 +506,7 @@ void loop()
 {
     if (gameOver)
     {
-        Serial.println(score);
-        delay(100); // Prevent spamming
+        sendScore(10001);
         return;
     }
 
